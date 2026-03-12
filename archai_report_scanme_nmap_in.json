@@ -1,0 +1,20 @@
+{
+    "target": "scanme.nmap.in",
+    "timestamp": "2026-03-04T20:09:47.394365",
+    "results": {
+        "open_ports": [],
+        "technologies": [],
+        "os_detection": null,
+        "risk_score": 0,
+        "infrastructure": {},
+        "infrastructure_type": "unknown",
+        "shodan_ports": [],
+        "port_mismatch": [],
+        "nvd_cves": [],
+        "anomalies": [],
+        "final_risk_score": 0.0,
+        "exposure_level": "Low",
+        "confidence_score": 0.5,
+        "escalation_path": "light"
+    }
+}

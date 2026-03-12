@@ -1,0 +1,34 @@
+{
+    "target": "google.com",
+    "timestamp": "2026-03-08T15:10:44.468219",
+    "results": {
+        "open_ports": [
+            80,
+            443
+        ],
+        "technologies": [],
+        "os_detection": null,
+        "risk_score": 1.0,
+        "infrastructure": {
+            "ip": "142.251.43.174",
+            "asn": "AS15169 Google LLC",
+            "country": "US"
+        },
+        "infrastructure_type": "cloud",
+        "shodan_ports": [],
+        "port_mismatch": [],
+        "nvd_cves": [],
+        "anomalies": [],
+        "final_risk_score": 0.6,
+        "exposure_level": "Low",
+        "confidence_score": 0.6,
+        "escalation_path": "light",
+        "vulnerability_analysis": [],
+        "attack_paths": [
+            "Web server detected \u2192 Directory enumeration \u2192 Web vulnerability scanning",
+            "Web application \u2192 Authentication bypass \u2192 Sensitive data exposure"
+        ],
+        "exploit_suggestions": [],
+        "pentest_report": "archai_pentest_report_google_com.json"
+    }
+}

@@ -1,0 +1,60 @@
+{
+    "target": "www.bdgroup.com",
+    "timestamp": "2026-03-08T15:11:57.176621",
+    "results": {
+        "open_ports": [
+            80,
+            443,
+            8080,
+            8443
+        ],
+        "technologies": [],
+        "os_detection": null,
+        "risk_score": 4.0,
+        "infrastructure": {
+            "ip": "104.17.170.172",
+            "asn": "AS13335 Cloudflare, Inc.",
+            "country": "US"
+        },
+        "infrastructure_type": "cdn",
+        "shodan_ports": [
+            2096,
+            2082,
+            2083,
+            2052,
+            2053,
+            2086,
+            2087,
+            2095,
+            80,
+            8880,
+            8080,
+            8443,
+            443
+        ],
+        "port_mismatch": [
+            2082,
+            2083,
+            2052,
+            2053,
+            2086,
+            2087,
+            8880,
+            2095,
+            2096
+        ],
+        "nvd_cves": [],
+        "anomalies": [],
+        "final_risk_score": 2.4,
+        "exposure_level": "Moderate",
+        "confidence_score": 0.7,
+        "escalation_path": "light",
+        "vulnerability_analysis": [],
+        "attack_paths": [
+            "Web server detected \u2192 Directory enumeration \u2192 Web vulnerability scanning",
+            "Web application \u2192 Authentication bypass \u2192 Sensitive data exposure"
+        ],
+        "exploit_suggestions": [],
+        "pentest_report": "archai_pentest_report_www_bdgroup_com.json"
+    }
+}

@@ -1,0 +1,32 @@
+{
+    "target": "www.apexglobe.com",
+    "timestamp": "2026-03-10T17:39:17.787043",
+    "results": {
+        "open_ports": [
+            80,
+            443,
+            8008
+        ],
+        "technologies": [
+            "nginx 1.18.0",
+            "nginx 1.18.0"
+        ],
+        "os_detection": "Linux 4.19 - 5.15",
+        "risk_score": 2.5,
+        "shodan_ports": [],
+        "port_mismatch": [],
+        "nvd_cves": [],
+        "anomalies": [],
+        "final_risk_score": 3.0,
+        "exposure_level": "Moderate",
+        "confidence_score": 0.85,
+        "escalation_path": "light \u2192 balanced",
+        "vulnerability_analysis": [],
+        "attack_paths": [
+            "Web server detected \u2192 Directory enumeration \u2192 Web vulnerability scanning",
+            "Web application \u2192 Authentication bypass \u2192 Sensitive data exposure"
+        ],
+        "exploit_suggestions": [],
+        "pentest_report": "archai_pentest_report_www_apexglobe_com.json"
+    }
+}

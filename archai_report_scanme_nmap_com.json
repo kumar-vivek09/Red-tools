@@ -1,0 +1,33 @@
+{
+    "target": "scanme.nmap.com",
+    "timestamp": "2026-03-12T13:58:58.550368",
+    "results": {
+        "open_ports": [
+            80
+        ],
+        "technologies": [],
+        "os_detection": null,
+        "risk_score": 0.5,
+        "infrastructure": {
+            "ip": "45.33.32.156",
+            "asn": "AS63949 Akamai Connected Cloud",
+            "country": "US"
+        },
+        "infrastructure_type": "cdn",
+        "shodan_ports": [],
+        "port_mismatch": [],
+        "nvd_cves": [],
+        "anomalies": [],
+        "final_risk_score": 0.3,
+        "exposure_level": "Low",
+        "confidence_score": 0.55,
+        "escalation_path": "light",
+        "vulnerability_analysis": [],
+        "attack_paths": [
+            "Web server detected \u2192 Directory enumeration \u2192 Web vulnerability scanning",
+            "Web application \u2192 Authentication bypass \u2192 Sensitive data exposure"
+        ],
+        "exploit_suggestions": [],
+        "pentest_report": "archai_pentest_report_scanme_nmap_com.json"
+    }
+}
