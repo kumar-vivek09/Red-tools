@@ -1,28 +1,23 @@
-import subprocess
+import asyncio
+
 
 class ToolRunner:
 
-    def run_command(self, command):
+    async def run_command(self, command):
 
         try:
-            result = subprocess.run(
+            process = await asyncio.create_subprocess_shell(
                 command,
-                shell=True,
-                capture_output=True,
-                text=True,
-                timeout=600
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
             )
+
+            stdout, stderr = await process.communicate()
 
             return {
                 "success": True,
-                "stdout": result.stdout,
-                "stderr": result.stderr
-            }
-
-        except subprocess.TimeoutExpired:
-            return {
-                "success": False,
-                "error": "Command timed out"
+                "stdout": stdout.decode(),
+                "stderr": stderr.decode()
             }
 
         except Exception as e:

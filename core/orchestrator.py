@@ -13,11 +13,12 @@ from module.intelligence.anomaly_engine import AnomalyEngine
 from module.intelligence.exposure_classifier import ExposureClassifier
 from module.intelligence.vulnerability_reasoner import VulnerabilityReasoner
 from module.intelligence.exploit_mapper import ExploitMapper
+
 from core.attack_graph import AttackGraph
 from core.report_generator import ReportGenerator
 
 # -------------------
-# NEW TOOL IMPORTS
+# TOOL IMPORTS
 # -------------------
 from module.tools.masscan_engine import MasscanEngine
 from module.tools.whatweb_engine import WhatWebEngine
@@ -31,121 +32,148 @@ class Orchestrator:
 
     def __init__(self, scan_level=1):
         self.scan_level = scan_level
-        self.SHODAN_API_KEY = "r48wSWX5zJSgpqBVURSC8QVPCmKn9Qrd"
+        self.SHODAN_API_KEY = "YOUR_SHODAN_KEY"
 
     async def run(self, target):
 
         print(f"\n[+] Starting ARCHAI scan for: {target}")
         print(f"[+] Scan Level: {self.scan_level}\n")
 
-        escalation_path = ["light"]
+        escalation_path = []
 
-        # -------------------
-        # PHASE 1 — LIGHT
-        # -------------------
-        engine = NmapEngine(scan_level=1)
-        results = await engine.execute(target)
+        # =================================================
+        # PHASE 1 — FAST DISCOVERY (LIGHT SCAN)
+        # =================================================
 
-        # -------------------
-        # EXTERNAL TOOL PIPELINE
-        # -------------------
-        print("\n[+] Running integrated recon tools\n")
+        print("[+] Phase 1 → Initial reconnaissance scan")
 
-        try:
-            masscan = MasscanEngine().run(target)
-            results["masscan"] = masscan
-        except Exception:
-            results["masscan"] = None
+        nmap_light = NmapEngine(scan_level=1)
+        results = await nmap_light.execute(target)
 
-        try:
-            whatweb = WhatWebEngine().run(target)
-            results["whatweb"] = whatweb
-        except Exception:
-            results["whatweb"] = None
+        escalation_path.append("light")
 
-        try:
-            ffuf = FfufEngine().run(target)
-            results["ffuf"] = ffuf
-        except Exception:
-            results["ffuf"] = None
+        open_ports = results.get("open_ports", [])
 
-        try:
-            nuclei = NucleiEngine().run(target)
-            results["nuclei"] = nuclei
-        except Exception:
-            results["nuclei"] = None
+        # =================================================
+        # PHASE 2 — BALANCED ESCALATION
+        # =================================================
 
-        try:
-            harvester = HarvesterEngine().run(target)
-            results["harvester"] = harvester
-        except Exception:
-            results["harvester"] = None
+        high_risk_ports = {21, 22, 3306, 3389}
+        suspicious_ports = high_risk_ports.intersection(open_ports)
 
-        try:
-            gowitness = GoWitnessEngine().run(target)
-            results["gowitness"] = gowitness
-        except Exception:
-            results["gowitness"] = None
+        if suspicious_ports or len(open_ports) > 5:
 
-        # -------------------
-        # Infrastructure
-        # -------------------
+            print("[Adaptive] Suspicious services detected → Balanced scan")
+
+            nmap_balanced = NmapEngine(scan_level=2)
+            results_balanced = await nmap_balanced.execute(target)
+
+            results.update(results_balanced)
+            escalation_path.append("balanced")
+
+        # =================================================
+        # PHASE 3 — AGGRESSIVE SCAN (ONLY IF NEEDED)
+        # =================================================
+
+        if results.get("risk_score", 0) > 4:
+
+            print("[Adaptive] High risk detected → Aggressive scan")
+
+            nmap_aggressive = NmapEngine(scan_level=3)
+            results_aggressive = await nmap_aggressive.execute(target)
+
+            results.update(results_aggressive)
+            escalation_path.append("aggressive")
+
+        # =================================================
+        # PHASE 4 — UDP SCAN (SMART TRIGGER)
+        # =================================================
+
+        if 53 in open_ports or 161 in open_ports:
+
+            print("[Adaptive] UDP services suspected → Running UDP scan")
+
+            nmap_udp = NmapEngine(scan_level=4)
+            results_udp = await nmap_udp.execute(target)
+
+            results.update(results_udp)
+            escalation_path.append("udp")
+
+        # =================================================
+        # PHASE 5 — PARALLEL TOOL EXECUTION
+        # =================================================
+
+        print("\n[+] Running integrated recon tools in parallel\n")
+
+        masscan_engine = MasscanEngine()
+        whatweb_engine = WhatWebEngine()
+        ffuf_engine = FfufEngine()
+        nuclei_engine = NucleiEngine()
+        harvester_engine = HarvesterEngine()
+        gowitness_engine = GoWitnessEngine()
+
+        tool_results = await asyncio.gather(
+            masscan_engine.run(target),
+            whatweb_engine.run(target),
+            ffuf_engine.run(target),
+            nuclei_engine.run(target),
+            harvester_engine.run(target),
+            gowitness_engine.run(target),
+            return_exceptions=True
+        )
+
+        results["masscan"] = tool_results[0]
+        results["whatweb"] = tool_results[1]
+        results["ffuf"] = tool_results[2]
+        results["nuclei"] = tool_results[3]
+        results["harvester"] = tool_results[4]
+        results["gowitness"] = tool_results[5]
+
+        # =================================================
+        # INFRASTRUCTURE ANALYSIS
+        # =================================================
+
         asn = ASNLookup()
         infra = asn.lookup(target)
+
         results["infrastructure"] = infra
 
         classifier = InfrastructureClassifier()
-        infra_type = classifier.classify(infra.get("asn"))
-        results["infrastructure_type"] = infra_type
+        results["infrastructure_type"] = classifier.classify(infra.get("asn"))
 
-        # -------------------
-        # ADAPTIVE LOGIC
-        # -------------------
-        if self.scan_level == 4:
+        # =================================================
+        # SHODAN INTELLIGENCE
+        # =================================================
 
-            open_ports = results.get("open_ports", [])
-            base_risk = results.get("risk_score", 0)
-
-            high_risk_ports = {21, 22, 3306, 3389}
-            uncommon_ports = [p for p in open_ports if p > 1024 and p not in {8080, 8443}]
-
-            # Step 2 → Balanced escalation
-            if high_risk_ports.intersection(open_ports) or uncommon_ports:
-                print("[Adaptive] Risky service detected → Balanced escalation.")
-                balanced = NmapEngine(scan_level=2)
-                results = await balanced.execute(target)
-                escalation_path.append("balanced")
-
-            # Step 3 → If vulnerability found → Aggressive deep scan
-            if results.get("nse_vulnerabilities"):
-                print("[Adaptive] Vulnerability detected → FULL Aggressive escalation.")
-                aggressive = NmapEngine(scan_level=3)
-                results = await aggressive.execute(target)
-                escalation_path.append("aggressive")
-
-        # -------------------
-        # SHODAN
-        # -------------------
         shodan_ports = []
         shodan_cves = []
 
-        if infra.get("ip") and self.SHODAN_API_KEY != "YOUR_REAL_SHODAN_KEY":
+        if infra.get("ip") and self.SHODAN_API_KEY != "YOUR_SHODAN_KEY":
+
             shodan = ShodanEngine(self.SHODAN_API_KEY)
             shodan_data = shodan.lookup(infra.get("ip"))
+
             shodan_ports = shodan_data.get("ports", [])
-            shodan_cves = [{"cve_id": c, "cvss": 5} for c in shodan_data.get("vulns", [])]
+
+            shodan_cves = [
+                {"cve_id": cve, "cvss": 5}
+                for cve in shodan_data.get("vulns", [])
+            ]
 
         results["shodan_ports"] = shodan_ports
 
         if shodan_ports:
             nmap_ports = set(results.get("open_ports", []))
-            results["port_mismatch"] = list(set(shodan_ports).symmetric_difference(nmap_ports))
+            results["port_mismatch"] = list(
+                set(shodan_ports).symmetric_difference(nmap_ports)
+            )
         else:
             results["port_mismatch"] = []
 
-        # -------------------
-        # NVD LIVE
-        # -------------------
+        # =================================================
+        # NVD VULNERABILITY LOOKUP
+        # =================================================
+
         nvd = NVDEngine()
         nvd_cves = []
 
@@ -154,20 +182,23 @@ class Orchestrator:
 
         results["nvd_cves"] = nvd_cves
 
-        # -------------------
-        # ANOMALIES
-        # -------------------
+        # =================================================
+        # ANOMALY DETECTION
+        # =================================================
+
         anomaly_engine = AnomalyEngine()
         anomalies = anomaly_engine.detect(results)
+
         results["anomalies"] = anomalies
 
-        # -------------------
+        # =================================================
         # RISK SCORING
-        # -------------------
-        nse_vulns = results.get("nse_vulnerabilities", [])
+        # =================================================
+
         total_cves = shodan_cves + nvd_cves
 
         risk_engine = RiskScoring()
+
         final_risk = risk_engine.calculate(
             results.get("risk_score", 0),
             escalation_path[-1],
@@ -175,51 +206,58 @@ class Orchestrator:
             len(anomalies)
         )
 
-        final_risk += min(len(nse_vulns) * 2, 4)
-
         results["final_risk_score"] = min(round(final_risk, 2), 10)
 
-        # -------------------
-        # EXPOSURE LEVEL
-        # -------------------
-        exposure = ExposureClassifier()
-        results["exposure_level"] = exposure.classify(results["final_risk_score"])
+        # =================================================
+        # EXPOSURE CLASSIFICATION
+        # =================================================
 
-        # -------------------
-        # CONFIDENCE
-        # -------------------
+        exposure = ExposureClassifier()
+        results["exposure_level"] = exposure.classify(
+            results["final_risk_score"]
+        )
+
+        # =================================================
+        # CONFIDENCE ENGINE
+        # =================================================
+
         confidence_engine = ConfidenceEngine()
         results["confidence_score"] = confidence_engine.calculate(results)
 
         results["escalation_path"] = " → ".join(escalation_path)
 
-        # -------------------
+        # =================================================
         # VULNERABILITY REASONING
-        # -------------------
+        # =================================================
+
         reasoner = VulnerabilityReasoner()
         results["vulnerability_analysis"] = reasoner.analyze(results)
 
-        # -------------------
-        # ATTACK PATH PLANNING
-        # -------------------
+        # =================================================
+        # ATTACK PATH GENERATION
+        # =================================================
+
         attack_graph = AttackGraph()
         results["attack_paths"] = attack_graph.generate(results)
 
-        # -------------------
+        # =================================================
         # EXPLOIT SUGGESTIONS
-        # -------------------
+        # =================================================
+
         exploit_mapper = ExploitMapper()
         results["exploit_suggestions"] = exploit_mapper.suggest(results)
 
-        # -------------------
-        # PENTEST REPORT
-        # -------------------
+        # =================================================
+        # REPORT GENERATION
+        # =================================================
+
         report_generator = ReportGenerator()
         results["pentest_report"] = report_generator.generate(target, results)
 
-        # -------------------
+        # =================================================
         # JSON EXPORT
-        # -------------------
+        # =================================================
+
         filename = f"archai_report_{target.replace('.', '_')}.json"
 
         report_data = {
@@ -234,4 +272,5 @@ class Orchestrator:
         results["report_file"] = filename
 
         print("\n[+] ARCHAI Intelligence Processing Complete\n")
+
         return results
