@@ -11,7 +11,7 @@ class MasscanEngine:
 
         runner = ToolRunner()
 
-        command = f"masscan {target} -p1-65535 --rate=1000 -oJ {output_file}"
+        command = f"masscan {target} -p1-65535 --rate=1000 -oJ masscan_results.json"
 
         runner.run_command(command)
 
