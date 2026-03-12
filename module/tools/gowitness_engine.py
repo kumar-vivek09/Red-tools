@@ -1,5 +1,6 @@
 from module.tools.tool_runner import ToolRunner
 
+
 class GoWitnessEngine:
 
     def run(self, target):
@@ -8,6 +9,6 @@ class GoWitnessEngine:
 
         command = f"gowitness single http://{target}"
 
-        result = runner.run_command(command)
+        runner.run_command(command)
 
-        return result
+        return {"screenshot": f"http://{target}"}

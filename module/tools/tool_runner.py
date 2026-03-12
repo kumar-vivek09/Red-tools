@@ -3,6 +3,7 @@ import subprocess
 class ToolRunner:
 
     def run_command(self, command):
+
         try:
             result = subprocess.run(
                 command,
@@ -16,6 +17,12 @@ class ToolRunner:
                 "success": True,
                 "stdout": result.stdout,
                 "stderr": result.stderr
+            }
+
+        except subprocess.TimeoutExpired:
+            return {
+                "success": False,
+                "error": "Command timed out"
             }
 
         except Exception as e:

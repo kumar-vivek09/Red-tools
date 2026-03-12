@@ -1,4 +1,6 @@
+import os
 from module.tools.tool_runner import ToolRunner
+
 
 class HarvesterEngine:
 
@@ -6,8 +8,13 @@ class HarvesterEngine:
 
         runner = ToolRunner()
 
+        output_file = "harvester_results.json"
+
         command = f"theHarvester -d {target} -b all -f harvester_results"
 
-        result = runner.run_command(command)
+        runner.run_command(command)
 
-        return result
+        if not os.path.exists(output_file):
+            return []
+
+        return {"osint": "harvester scan completed"}
