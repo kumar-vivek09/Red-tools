@@ -7,9 +7,9 @@ class MasscanEngine:
 
     async def run(self, target):
 
-        output_file = "masscan_results.json"
-
         runner = ToolRunner()
+
+        output_file = "masscan_results.json"
 
         command = f"sudo masscan {target} -p1-10000 --rate=1000 -oJ {output_file}"
 

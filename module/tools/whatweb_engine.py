@@ -7,9 +7,9 @@ class WhatWebEngine:
 
     async def run(self, target):
 
-        output_file = "whatweb_result.json"
-
         runner = ToolRunner()
+
+        output_file = "whatweb_result.json"
 
         command = f"whatweb {target} --log-json={output_file}"
 

@@ -7,11 +7,11 @@ class NucleiEngine:
 
     async def run(self, target):
 
-        output_file = "nuclei_results.json"
-
         runner = ToolRunner()
 
-        command = f"nuclei -u {target} -json -o {output_file} -rate-limit 100"
+        output_file = "nuclei_results.json"
+
+        command = f"nuclei -u {target} -json -o {output_file}"
 
         await runner.run_command(command)
 
@@ -22,6 +22,7 @@ class NucleiEngine:
 
         with open(output_file) as f:
             for line in f:
+
                 try:
                     data = json.loads(line)
 

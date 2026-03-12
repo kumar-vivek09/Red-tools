@@ -7,9 +7,9 @@ class FfufEngine:
 
     async def run(self, target):
 
-        output_file = "ffuf_output.json"
-
         runner = ToolRunner()
+
+        output_file = "ffuf_output.json"
 
         command = f"ffuf -u http://{target}/FUZZ -w /usr/share/wordlists/dirb/common.txt -o {output_file} -of json -t 40"
 
