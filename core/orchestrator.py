@@ -2,7 +2,28 @@ import asyncio
 import json
 from datetime import datetime
 
+# Recon
 from module.recon.nmap_engine import NmapEngine
+from module.tools.masscan_engine import MasscanEngine
+
+# Crawlers
+from module.crawling.katana_engine import KatanaEngine
+from module.crawling.amass_engine import AmassEngine
+from module.crawling.assetfinder_engine import AssetfinderEngine
+
+# Web tools
+from module.tools.whatweb_engine import WhatWebEngine
+from module.tools.ffuf_engine import FfufEngine
+from module.tools.nuclei_engine import NucleiEngine
+from module.tools.harvester_engine import HarvesterEngine
+from module.tools.gowitness_engine import GoWitnessEngine
+
+# Vuln scanners
+from module.vulnscan.nikto_engine import NiktoEngine
+from module.vulnscan.dalfox_engine import DalfoxEngine
+from module.vulnscan.sqlmap_engine import SqlmapEngine
+
+# Intelligence
 from module.intelligence.risk_scoring import RiskScoring
 from module.intelligence.confidence_engine import ConfidenceEngine
 from module.intelligence.asn_lookup import ASNLookup
@@ -14,18 +35,13 @@ from module.intelligence.exposure_classifier import ExposureClassifier
 from module.intelligence.vulnerability_reasoner import VulnerabilityReasoner
 from module.intelligence.exploit_mapper import ExploitMapper
 
+# Attack reasoning
+from module.attack.attack_chain_builder import AttackChainBuilder
+from module.attack.post_exploit_simulator import PostExploitSimulator
 from core.attack_graph import AttackGraph
-from core.report_generator import ReportGenerator
 
-# -------------------
-# TOOL IMPORTS
-# -------------------
-from module.tools.masscan_engine import MasscanEngine
-from module.tools.whatweb_engine import WhatWebEngine
-from module.tools.ffuf_engine import FfufEngine
-from module.tools.nuclei_engine import NucleiEngine
-from module.tools.harvester_engine import HarvesterEngine
-from module.tools.gowitness_engine import GoWitnessEngine
+# Reporting
+from core.report_generator import ReportGenerator
 
 
 class Orchestrator:
@@ -36,101 +52,100 @@ class Orchestrator:
 
     async def run(self, target):
 
-        print(f"\n[+] Starting ARCHAI scan for: {target}")
-        print(f"[+] Scan Level: {self.scan_level}\n")
+        print(f"\n[+] Starting ARCHAI scan for: {target}\n")
 
+        results = {}
         escalation_path = []
 
         # =================================================
-        # PHASE 1 — FAST DISCOVERY (LIGHT SCAN)
+        # PHASE 1 — FAST PORT DISCOVERY (MASSCAN)
         # =================================================
 
-        print("[+] Phase 1 → Initial reconnaissance scan")
+        print("[+] Phase 1 → Fast port discovery (Masscan)")
 
-        nmap_light = NmapEngine(scan_level=1)
-        results = await nmap_light.execute(target)
+        masscan = MasscanEngine()
+        ports = await masscan.run(target)
 
-        escalation_path.append("light")
+        results["masscan_ports"] = ports
+
+        # =================================================
+        # PHASE 2 — TARGETED NMAP SCAN
+        # =================================================
+
+        print("[+] Phase 2 → Detailed service scan (Nmap)")
+
+        nmap = NmapEngine()
+
+        if ports:
+            nmap_results = await nmap.execute_ports(target, ports)
+        else:
+            nmap_results = await nmap.execute(target)
+
+        results.update(nmap_results)
+        escalation_path.append("nmap")
 
         open_ports = results.get("open_ports", [])
 
         # =================================================
-        # PHASE 2 — BALANCED ESCALATION
+        # PHASE 3 — PARALLEL RECON TOOLS
         # =================================================
 
-        high_risk_ports = {21, 22, 3306, 3389}
-        suspicious_ports = high_risk_ports.intersection(open_ports)
+        print("[+] Phase 3 → Running recon tools")
 
-        if suspicious_ports or len(open_ports) > 5:
+        tool_tasks = [
+            WhatWebEngine().run(target),
+            FFUFEngine().run(target),
+            NucleiEngine().run(target),
+            HarvesterEngine().run(target),
+            GoWitnessEngine().run(target)
+        ]
 
-            print("[Adaptive] Suspicious services detected → Balanced scan")
+        tool_results = await asyncio.gather(*tool_tasks, return_exceptions=True)
 
-            nmap_balanced = NmapEngine(scan_level=2)
-            results_balanced = await nmap_balanced.execute(target)
-
-            results.update(results_balanced)
-            escalation_path.append("balanced")
-
-        # =================================================
-        # PHASE 3 — AGGRESSIVE SCAN (ONLY IF NEEDED)
-        # =================================================
-
-        if results.get("risk_score", 0) > 4:
-
-            print("[Adaptive] High risk detected → Aggressive scan")
-
-            nmap_aggressive = NmapEngine(scan_level=3)
-            results_aggressive = await nmap_aggressive.execute(target)
-
-            results.update(results_aggressive)
-            escalation_path.append("aggressive")
+        results["whatweb"] = tool_results[0]
+        results["ffuf"] = tool_results[1]
+        results["nuclei"] = tool_results[2]
+        results["harvester"] = tool_results[3]
+        results["gowitness"] = tool_results[4]
 
         # =================================================
-        # PHASE 4 — UDP SCAN (SMART TRIGGER)
+        # PHASE 4 — CRAWLING & SUBDOMAIN DISCOVERY
         # =================================================
 
-        if 53 in open_ports or 161 in open_ports:
+        print("[+] Phase 4 → Crawling & subdomain discovery")
 
-            print("[Adaptive] UDP services suspected → Running UDP scan")
+        crawl_tasks = [
+            KatanaEngine().run(target),
+            AmassEngine().run(target),
+            AssetfinderEngine().run(target)
+        ]
 
-            nmap_udp = NmapEngine(scan_level=4)
-            results_udp = await nmap_udp.execute(target)
+        crawl_results = await asyncio.gather(*crawl_tasks, return_exceptions=True)
 
-            results.update(results_udp)
-            escalation_path.append("udp")
-
-        # =================================================
-        # PHASE 5 — PARALLEL TOOL EXECUTION
-        # =================================================
-
-        print("\n[+] Running integrated recon tools in parallel\n")
-
-        masscan_engine = MasscanEngine()
-        whatweb_engine = WhatWebEngine()
-        ffuf_engine = FfufEngine()
-        nuclei_engine = NucleiEngine()
-        harvester_engine = HarvesterEngine()
-        gowitness_engine = GoWitnessEngine()
-
-        tool_results = await asyncio.gather(
-            masscan_engine.run(target),
-            whatweb_engine.run(target),
-            ffuf_engine.run(target),
-            nuclei_engine.run(target),
-            harvester_engine.run(target),
-            gowitness_engine.run(target),
-            return_exceptions=True
-        )
-
-        results["masscan"] = tool_results[0]
-        results["whatweb"] = tool_results[1]
-        results["ffuf"] = tool_results[2]
-        results["nuclei"] = tool_results[3]
-        results["harvester"] = tool_results[4]
-        results["gowitness"] = tool_results[5]
+        results["katana_urls"] = crawl_results[0]
+        results["amass_subdomains"] = crawl_results[1]
+        results["assetfinder_subdomains"] = crawl_results[2]
 
         # =================================================
-        # INFRASTRUCTURE ANALYSIS
+        # PHASE 5 — VULNERABILITY SCANNERS
+        # =================================================
+
+        print("[+] Phase 5 → Vulnerability scanners")
+
+        vuln_tasks = [
+            NiktoEngine().run(target),
+            DalfoxEngine().run(target),
+            SqlmapEngine().run(target)
+        ]
+
+        vuln_results = await asyncio.gather(*vuln_tasks, return_exceptions=True)
+
+        results["nikto"] = vuln_results[0]
+        results["dalfox"] = vuln_results[1]
+        results["sqlmap"] = vuln_results[2]
+
+        # =================================================
+        # INFRASTRUCTURE INTELLIGENCE
         # =================================================
 
         asn = ASNLookup()
@@ -142,7 +157,7 @@ class Orchestrator:
         results["infrastructure_type"] = classifier.classify(infra.get("asn"))
 
         # =================================================
-        # SHODAN INTELLIGENCE
+        # SHODAN
         # =================================================
 
         shodan_ports = []
@@ -156,22 +171,14 @@ class Orchestrator:
             shodan_ports = shodan_data.get("ports", [])
 
             shodan_cves = [
-                {"cve_id": cve, "cvss": 5}
-                for cve in shodan_data.get("vulns", [])
+                {"cve_id": c, "cvss": 5}
+                for c in shodan_data.get("vulns", [])
             ]
 
         results["shodan_ports"] = shodan_ports
 
-        if shodan_ports:
-            nmap_ports = set(results.get("open_ports", []))
-            results["port_mismatch"] = list(
-                set(shodan_ports).symmetric_difference(nmap_ports)
-            )
-        else:
-            results["port_mismatch"] = []
-
         # =================================================
-        # NVD VULNERABILITY LOOKUP
+        # NVD CVE LOOKUP
         # =================================================
 
         nvd = NVDEngine()
@@ -195,39 +202,33 @@ class Orchestrator:
         # RISK SCORING
         # =================================================
 
-        total_cves = shodan_cves + nvd_cves
-
         risk_engine = RiskScoring()
 
         final_risk = risk_engine.calculate(
             results.get("risk_score", 0),
-            escalation_path[-1],
-            total_cves,
+            "pipeline",
+            shodan_cves + nvd_cves,
             len(anomalies)
         )
 
         results["final_risk_score"] = min(round(final_risk, 2), 10)
 
         # =================================================
-        # EXPOSURE CLASSIFICATION
+        # EXPOSURE LEVEL
         # =================================================
 
         exposure = ExposureClassifier()
-        results["exposure_level"] = exposure.classify(
-            results["final_risk_score"]
-        )
+        results["exposure_level"] = exposure.classify(results["final_risk_score"])
 
         # =================================================
-        # CONFIDENCE ENGINE
+        # CONFIDENCE SCORE
         # =================================================
 
         confidence_engine = ConfidenceEngine()
         results["confidence_score"] = confidence_engine.calculate(results)
 
-        results["escalation_path"] = " → ".join(escalation_path)
-
         # =================================================
-        # VULNERABILITY REASONING
+        # VULNERABILITY ANALYSIS
         # =================================================
 
         reasoner = VulnerabilityReasoner()
@@ -237,8 +238,14 @@ class Orchestrator:
         # ATTACK PATH GENERATION
         # =================================================
 
-        attack_graph = AttackGraph()
-        results["attack_paths"] = attack_graph.generate(results)
+        chain_builder = AttackChainBuilder()
+        results["attack_paths"] = chain_builder.generate(results)
+
+        simulator = PostExploitSimulator()
+        results["post_exploitation"] = simulator.simulate(results)
+
+        graph = AttackGraph()
+        results["attack_graph"] = graph.generate(results)
 
         # =================================================
         # EXPLOIT SUGGESTIONS
@@ -255,7 +262,7 @@ class Orchestrator:
         results["pentest_report"] = report_generator.generate(target, results)
 
         # =================================================
-        # JSON EXPORT
+        # EXPORT JSON
         # =================================================
 
         filename = f"archai_report_{target.replace('.', '_')}.json"

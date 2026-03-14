@@ -11,7 +11,7 @@ class MasscanEngine:
 
         output_file = "masscan_results.json"
 
-        command = f"sudo masscan {target} -p1-10000 --rate=1000 -oJ {output_file}"
+        command = f"sudo masscan {target} -p1-65535 --rate=1000 -oJ {output_file}"
 
         await runner.run_command(command)
 
