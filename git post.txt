@@ -1,0 +1,3 @@
+git add .
+git commit -m "Updated feature / fixed bug"
+git push origin main

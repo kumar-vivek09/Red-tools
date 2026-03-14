@@ -94,7 +94,7 @@ class Orchestrator:
 
         tool_tasks = [
             WhatWebEngine().run(target),
-            FFUFEngine().run(target),
+            FfufEngine().run(target),
             NucleiEngine().run(target),
             HarvesterEngine().run(target),
             GoWitnessEngine().run(target)
