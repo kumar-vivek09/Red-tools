@@ -40,6 +40,9 @@ from module.attack.attack_chain_builder import AttackChainBuilder
 from module.attack.post_exploit_simulator import PostExploitSimulator
 from core.attack_graph import AttackGraph
 
+# Visualization
+from core.graph_visualizer import GraphVisualizer
+
 # Reporting
 from core.report_generator import ReportGenerator
 
@@ -50,15 +53,25 @@ class Orchestrator:
         self.scan_level = scan_level
         self.SHODAN_API_KEY = "YOUR_SHODAN_KEY"
 
+    def sanitize(self, obj):
+        """Make results JSON safe"""
+        if isinstance(obj, dict):
+            return {k: self.sanitize(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [self.sanitize(v) for v in obj]
+        elif isinstance(obj, Exception):
+            return str(obj)
+        else:
+            return obj
+
     async def run(self, target):
 
         print(f"\n[+] Starting ARCHAI scan for: {target}\n")
 
         results = {}
-        escalation_path = []
 
         # =================================================
-        # PHASE 1 — FAST PORT DISCOVERY (MASSCAN)
+        # PHASE 1 — MASSCAN
         # =================================================
 
         print("[+] Phase 1 → Fast port discovery (Masscan)")
@@ -69,7 +82,7 @@ class Orchestrator:
         results["masscan_ports"] = ports
 
         # =================================================
-        # PHASE 2 — TARGETED NMAP SCAN
+        # PHASE 2 — NMAP
         # =================================================
 
         print("[+] Phase 2 → Detailed service scan (Nmap)")
@@ -82,12 +95,9 @@ class Orchestrator:
             nmap_results = await nmap.execute(target)
 
         results.update(nmap_results)
-        escalation_path.append("nmap")
-
-        open_ports = results.get("open_ports", [])
 
         # =================================================
-        # PHASE 3 — PARALLEL RECON TOOLS
+        # PHASE 3 — RECON TOOLS
         # =================================================
 
         print("[+] Phase 3 → Running recon tools")
@@ -109,22 +119,20 @@ class Orchestrator:
         results["gowitness"] = tool_results[4]
 
         # =================================================
-        # PHASE 4 — CRAWLING & SUBDOMAIN DISCOVERY
+        # PHASE 4 — CRAWLING
         # =================================================
 
         print("[+] Phase 4 → Crawling & subdomain discovery")
 
         crawl_tasks = [
             KatanaEngine().run(target),
-            AmassEngine().run(target),
-            AssetfinderEngine().run(target)
+            AssetfinderEngine().run(target),
         ]
 
         crawl_results = await asyncio.gather(*crawl_tasks, return_exceptions=True)
 
         results["katana_urls"] = crawl_results[0]
-        results["amass_subdomains"] = crawl_results[1]
-        results["assetfinder_subdomains"] = crawl_results[2]
+        results["assetfinder_subdomains"] = crawl_results[1]
 
         # =================================================
         # PHASE 5 — VULNERABILITY SCANNERS
@@ -135,17 +143,15 @@ class Orchestrator:
         vuln_tasks = [
             NiktoEngine().run(target),
             DalfoxEngine().run(target),
-            SqlmapEngine().run(target)
         ]
 
         vuln_results = await asyncio.gather(*vuln_tasks, return_exceptions=True)
 
         results["nikto"] = vuln_results[0]
         results["dalfox"] = vuln_results[1]
-        results["sqlmap"] = vuln_results[2]
 
         # =================================================
-        # INFRASTRUCTURE INTELLIGENCE
+        # INFRASTRUCTURE
         # =================================================
 
         asn = ASNLookup()
@@ -157,28 +163,7 @@ class Orchestrator:
         results["infrastructure_type"] = classifier.classify(infra.get("asn"))
 
         # =================================================
-        # SHODAN
-        # =================================================
-
-        shodan_ports = []
-        shodan_cves = []
-
-        if infra.get("ip") and self.SHODAN_API_KEY != "YOUR_SHODAN_KEY":
-
-            shodan = ShodanEngine(self.SHODAN_API_KEY)
-            shodan_data = shodan.lookup(infra.get("ip"))
-
-            shodan_ports = shodan_data.get("ports", [])
-
-            shodan_cves = [
-                {"cve_id": c, "cvss": 5}
-                for c in shodan_data.get("vulns", [])
-            ]
-
-        results["shodan_ports"] = shodan_ports
-
-        # =================================================
-        # NVD CVE LOOKUP
+        # NVD LOOKUP
         # =================================================
 
         nvd = NVDEngine()
@@ -190,7 +175,7 @@ class Orchestrator:
         results["nvd_cves"] = nvd_cves
 
         # =================================================
-        # ANOMALY DETECTION
+        # ANOMALIES
         # =================================================
 
         anomaly_engine = AnomalyEngine()
@@ -199,7 +184,7 @@ class Orchestrator:
         results["anomalies"] = anomalies
 
         # =================================================
-        # RISK SCORING
+        # RISK SCORE
         # =================================================
 
         risk_engine = RiskScoring()
@@ -207,39 +192,37 @@ class Orchestrator:
         final_risk = risk_engine.calculate(
             results.get("risk_score", 0),
             "pipeline",
-            shodan_cves + nvd_cves,
+            nvd_cves,
             len(anomalies)
         )
 
         results["final_risk_score"] = min(round(final_risk, 2), 10)
 
         # =================================================
-        # EXPOSURE LEVEL
+        # EXPOSURE
         # =================================================
 
         exposure = ExposureClassifier()
         results["exposure_level"] = exposure.classify(results["final_risk_score"])
 
         # =================================================
-        # CONFIDENCE SCORE
+        # CONFIDENCE
         # =================================================
 
         confidence_engine = ConfidenceEngine()
         results["confidence_score"] = confidence_engine.calculate(results)
 
         # =================================================
-        # VULNERABILITY ANALYSIS
+        # ATTACK REASONING
         # =================================================
 
         reasoner = VulnerabilityReasoner()
         results["vulnerability_analysis"] = reasoner.analyze(results)
 
-        # =================================================
-        # ATTACK PATH GENERATION
-        # =================================================
-
         chain_builder = AttackChainBuilder()
-        results["attack_paths"] = chain_builder.generate(results)
+        attack_paths = chain_builder.generate(results)
+
+        results["attack_paths"] = attack_paths
 
         simulator = PostExploitSimulator()
         results["post_exploitation"] = simulator.simulate(results)
@@ -248,14 +231,23 @@ class Orchestrator:
         results["attack_graph"] = graph.generate(results)
 
         # =================================================
-        # EXPLOIT SUGGESTIONS
+        # GRAPH VISUALIZATION
+        # =================================================
+
+        visualizer = GraphVisualizer()
+        graph_file = visualizer.generate(target, attack_paths)
+
+        results["attack_graph_visualization"] = graph_file
+
+        # =================================================
+        # EXPLOITS
         # =================================================
 
         exploit_mapper = ExploitMapper()
         results["exploit_suggestions"] = exploit_mapper.suggest(results)
 
         # =================================================
-        # REPORT GENERATION
+        # REPORT
         # =================================================
 
         report_generator = ReportGenerator()
@@ -270,7 +262,7 @@ class Orchestrator:
         report_data = {
             "target": target,
             "timestamp": datetime.now().isoformat(),
-            "results": results
+            "results": self.sanitize(results)
         }
 
         with open(filename, "w") as f:
