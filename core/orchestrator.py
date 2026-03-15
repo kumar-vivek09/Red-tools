@@ -37,6 +37,11 @@ from core.report_generator import ReportGenerator
 
 class Orchestrator:
 
+
+    def __init__(self, scan_level=1):
+        self.scan_level = scan_level
+        self.SHODAN_API_KEY = "r48wSWX5zJSgpqBVURSC8QVPCmKn9Qrd"
+
     def sanitize(self, obj):
         if isinstance(obj, dict):
             return {k: self.sanitize(v) for k, v in obj.items()}
