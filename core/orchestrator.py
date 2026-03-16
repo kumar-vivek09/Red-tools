@@ -74,6 +74,9 @@ class Orchestrator:
         masscan = MasscanEngine()
         ports = await self.safe_run(masscan.run(target), 60)
 
+        if not ports:
+            print("[!] Masscan found no ports → falling back to Nmap")
+
         results["masscan_ports"] = ports
 
 

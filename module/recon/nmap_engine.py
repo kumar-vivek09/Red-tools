@@ -80,7 +80,7 @@ class NmapEngine:
             return [base_path, "-sS", "-sV", "-O", "-sU", "-p-", "--script", "vuln", "-T4", target, "-oX", output_file]
 
         elif self.scan_level == 4:
-            return [base_path, "-sT", "--top-ports", "100", target, "-oX", output_file]
+            return [base_path, "-sT", "--top-ports", "1000", target, "-oX", output_file]
 
     def parse_xml(self, file):
 

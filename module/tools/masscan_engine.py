@@ -11,9 +11,15 @@ class MasscanEngine:
 
         output_file = "masscan_results.json"
 
-        command = f"sudo masscan {target} -p1-65535 --rate=1000 -oJ {output_file}"
+        cmd = [
+            "sudo",
+            "masscan",
+            target,
+            "-p1-65535",
+            "--rate", "1000"
+        ]
 
-        await runner.run_command(command)
+        await runner.run_cmd(cmd)
 
         if not os.path.exists(output_file):
             return []
