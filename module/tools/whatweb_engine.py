@@ -1,30 +1,23 @@
+import subprocess
 import json
-import os
-from module.tools.tool_runner import ToolRunner
-
 
 class WhatWebEngine:
 
     async def run(self, target):
 
-        runner = ToolRunner()
+        cmd = [
+            "whatweb",
+            f"http://{target}",
+            "--log-json=whatweb.json"
+        ]
 
-        output_file = "whatweb_result.json"
+        subprocess.run(cmd, capture_output=True)
 
-        command = f"whatweb {target} --log-json={output_file}"
+        try:
+            with open("whatweb.json") as f:
+                data = json.load(f)
 
-        await runner.run_command(command)
+            return data
 
-        if not os.path.exists(output_file):
-            return []
-
-        with open(output_file) as f:
-            data = json.load(f)
-
-        tech = []
-
-        for entry in data:
-            for plugin in entry.get("plugins", {}):
-                tech.append(plugin)
-
-        return tech
+        except Exception:
+            return {}

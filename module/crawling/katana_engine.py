@@ -1,20 +1,21 @@
-from module.tools.tool_runner import ToolRunner
-
+import subprocess
 
 class KatanaEngine:
 
     async def run(self, target):
 
-        runner = ToolRunner()
+        cmd = [
+            "katana",
+            "-u", f"http://{target}",
+            "-silent"
+        ]
 
-        command = f"katana -u {target} -silent -o katana_urls.txt"
+        process = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True
+        )
 
-        await runner.run_command(command)
-
-        try:
-            with open("katana_urls.txt") as f:
-                urls = [line.strip() for line in f]
-        except:
-            urls = []
+        urls = process.stdout.strip().splitlines()
 
         return urls

@@ -1,38 +1,28 @@
+import subprocess
 import json
-import os
-from module.tools.tool_runner import ToolRunner
-
 
 class NucleiEngine:
 
     async def run(self, target):
 
-        runner = ToolRunner()
+        cmd = [
+            "nuclei",
+            "-u", f"http://{target}",
+            "-json"
+        ]
 
-        output_file = "nuclei_results.json"
+        process = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True
+        )
 
-        command = f"nuclei -u {target} -json -o {output_file}"
+        results = []
 
-        await runner.run_command(command)
+        for line in process.stdout.splitlines():
+            try:
+                results.append(json.loads(line))
+            except:
+                pass
 
-        if not os.path.exists(output_file):
-            return []
-
-        findings = []
-
-        with open(output_file) as f:
-            for line in f:
-
-                try:
-                    data = json.loads(line)
-
-                    findings.append({
-                        "template": data.get("templateID"),
-                        "severity": data.get("info", {}).get("severity"),
-                        "name": data.get("info", {}).get("name")
-                    })
-
-                except:
-                    continue
-
-        return findings
+        return results

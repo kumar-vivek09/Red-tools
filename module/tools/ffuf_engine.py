@@ -1,33 +1,31 @@
+import subprocess
 import json
-import os
-from module.tools.tool_runner import ToolRunner
-
 
 class FfufEngine:
 
     async def run(self, target):
 
-        runner = ToolRunner()
+        cmd = [
+            "ffuf",
+            "-u", f"http://{target}/FUZZ",
+            "-w", "/usr/share/wordlists/dirb/common.txt",
+            "-of", "json"
+        ]
 
-        output_file = "ffuf_output.json"
+        process = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True
+        )
 
-        command = f"ffuf -u http://{target}/FUZZ -w /usr/share/wordlists/dirb/common.txt -o {output_file} -of json -t 40"
+        try:
+            data = json.loads(process.stdout)
 
-        await runner.run_command(command)
+            results = [
+                r["url"] for r in data.get("results", [])
+            ]
 
-        if not os.path.exists(output_file):
+            return results
+
+        except Exception:
             return []
-
-        with open(output_file) as f:
-            data = json.load(f)
-
-        results = []
-
-        for r in data.get("results", []):
-            results.append({
-                "endpoint": r.get("url"),
-                "status": r.get("status"),
-                "length": r.get("length")
-            })
-
-        return results

@@ -1,20 +1,17 @@
-from module.tools.tool_runner import ToolRunner
-
+import subprocess
 
 class AssetfinderEngine:
 
     async def run(self, target):
 
-        runner = ToolRunner()
+        cmd = ["assetfinder", "--subs-only", target]
 
-        command = f"assetfinder --subs-only {target} > assetfinder_subdomains.txt"
+        process = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True
+        )
 
-        await runner.run_command(command)
+        output = process.stdout.strip().splitlines()
 
-        try:
-            with open("assetfinder_subdomains.txt") as f:
-                subs = [line.strip() for line in f]
-        except:
-            subs = []
-
-        return subs
+        return output
