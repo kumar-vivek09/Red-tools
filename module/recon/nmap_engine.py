@@ -10,6 +10,10 @@ class NmapEngine:
     def __init__(self, scan_level=1):
         self.scan_level = scan_level
 
+
+    # --------------------------------------------------
+    # FULL TARGET SCAN
+    # --------------------------------------------------
     async def execute(self, target):
 
         output_file = "nmap_scan.xml"
@@ -22,12 +26,11 @@ class NmapEngine:
                 stderr=subprocess.DEVNULL,
                 timeout=600
             )
-        except subprocess.TimeoutExpired:
-            print("Scan timed out.")
 
-            # -------------------
-            # CROSS PLATFORM PROCESS KILL
-            # -------------------
+        except subprocess.TimeoutExpired:
+
+            print("[!] Nmap scan timed out")
+
             if platform.system() == "Windows":
                 subprocess.run(
                     ["taskkill", "/F", "/IM", "nmap.exe"],
@@ -48,6 +51,54 @@ class NmapEngine:
 
         return self.parse_xml(output_file)
 
+
+    # --------------------------------------------------
+    # MASSCAN → NMAP TARGETED SCAN
+    # --------------------------------------------------
+    async def execute_ports(self, target, ports):
+
+        if not ports:
+            return await self.execute(target)
+
+        output_file = "nmap_scan.xml"
+        port_string = ",".join(map(str, ports))
+
+        if platform.system() == "Windows":
+            base_path = r"C:\Program Files (x86)\Nmap\nmap.exe"
+        else:
+            base_path = shutil.which("nmap") or "nmap"
+
+        cmd = [
+            base_path,
+            "-sV",
+            "-p",
+            port_string,
+            "-T4",
+            target,
+            "-oX",
+            output_file
+        ]
+
+        try:
+            subprocess.run(
+                cmd,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=600
+            )
+
+        except subprocess.TimeoutExpired:
+            return self.empty_result()
+
+        if not os.path.exists(output_file):
+            return self.empty_result()
+
+        return self.parse_xml(output_file)
+
+
+    # --------------------------------------------------
+    # DEFAULT RESULT STRUCTURE
+    # --------------------------------------------------
     def empty_result(self):
         return {
             "open_ports": [],
@@ -56,20 +107,17 @@ class NmapEngine:
             "risk_score": 0
         }
 
+
+    # --------------------------------------------------
+    # BUILD NMAP COMMAND BASED ON SCAN LEVEL
+    # --------------------------------------------------
     def build_command(self, target, output_file):
 
-        # -------------------
-        # CROSS PLATFORM NMAP PATH
-        # -------------------
         if platform.system() == "Windows":
             base_path = r"C:\Program Files (x86)\Nmap\nmap.exe"
         else:
-            # Linux / Kali automatically resolves nmap in PATH
             base_path = shutil.which("nmap") or "nmap"
 
-        # -------------------
-        # SCAN LEVEL LOGIC
-        # -------------------
         if self.scan_level == 1:
             return [base_path, "-sT", "--top-ports", "100", target, "-oX", output_file]
 
@@ -82,6 +130,10 @@ class NmapEngine:
         elif self.scan_level == 4:
             return [base_path, "-sT", "--top-ports", "1000", target, "-oX", output_file]
 
+
+    # --------------------------------------------------
+    # PARSE NMAP XML OUTPUT
+    # --------------------------------------------------
     def parse_xml(self, file):
 
         results = self.empty_result()
@@ -93,12 +145,17 @@ class NmapEngine:
             return results
 
         for port in root.iter("port"):
+
             state = port.find("state")
-            if state is not None and state.attrib["state"] == "open":
+
+            if state is not None and state.attrib.get("state") == "open":
 
                 port_id = int(port.attrib["portid"])
-                results["open_ports"].append(port_id)
 
+                if port_id not in results["open_ports"]:
+                    results["open_ports"].append(port_id)
+
+                # Risk scoring logic
                 if port_id in [80, 443]:
                     results["risk_score"] += 0.5
                 elif port_id in [22, 21, 3306, 3389]:
@@ -107,14 +164,19 @@ class NmapEngine:
                     results["risk_score"] += 1.5
 
                 service = port.find("service")
+
                 if service is not None:
+
                     product = service.attrib.get("product", "")
                     version = service.attrib.get("version", "")
+
                     tech = f"{product} {version}".strip()
-                    if tech:
+
+                    if tech and tech not in results["technologies"]:
                         results["technologies"].append(tech)
 
         osmatch = root.find(".//osmatch")
+
         if osmatch is not None:
             results["os_detection"] = osmatch.attrib.get("name")
 
