@@ -1,16 +1,27 @@
-from module.tools.tool_runner import ToolRunner
-
+import subprocess
 
 class GoWitnessEngine:
 
     async def run(self, target):
 
-        runner = ToolRunner()
+        cmd = [
+            "gowitness",
+            "scan",
+            "single",
+            "--url", f"http://{target}",
+            "--quiet"
+        ]
 
-        command = f"gowitness single http://{target}"
+        try:
+            subprocess.run(
+                cmd,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
 
-        await runner.run_command(command)
+            return {
+                "screenshot": f"http://{target}"
+            }
 
-        return {
-            "screenshot": f"http://{target}"
-        }
+        except Exception as e:
+            return {"error": str(e)}

@@ -1,20 +1,26 @@
-from module.tools.tool_runner import ToolRunner
-
+import subprocess
 
 class AmassEngine:
 
     async def run(self, target):
 
-        runner = ToolRunner()
-
-        command = f"amass enum -d {target} -o amass_subdomains.txt"
-
-        await runner.run_command(command)
+        cmd = [
+            "amass",
+            "enum",
+            "-d", target
+        ]
 
         try:
-            with open("amass_subdomains.txt") as f:
-                subs = [line.strip() for line in f]
-        except:
-            subs = []
+            process = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=120
+            )
 
-        return subs
+            subdomains = process.stdout.splitlines()
+
+            return subdomains
+
+        except Exception as e:
+            return []

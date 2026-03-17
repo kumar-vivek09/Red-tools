@@ -1,14 +1,27 @@
-from module.tools.tool_runner import ToolRunner
-
+import subprocess
 
 class DalfoxEngine:
 
     async def run(self, target):
 
-        runner = ToolRunner()
+        cmd = [
+            "dalfox",
+            "url",
+            f"http://{target}",
+            "--silence"
+        ]
 
-        command = f"dalfox url {target} --output dalfox_results.txt"
+        try:
+            process = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=60
+            )
 
-        await runner.run_command(command)
+            return {
+                "dalfox_output": process.stdout[:1000]
+            }
 
-        return {"dalfox": "scan completed"}
+        except Exception as e:
+            return {"error": str(e)}

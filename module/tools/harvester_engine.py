@@ -1,16 +1,23 @@
-from module.tools.tool_runner import ToolRunner
-
+import subprocess
 
 class HarvesterEngine:
 
     async def run(self, target):
 
-        runner = ToolRunner()
+        cmd = [
+            "theHarvester",
+            "-d", target,
+            "-b", "all"
+        ]
 
-        command = f"theHarvester -d {target} -b all -f harvester_results"
+        try:
+            process = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True
+            )
 
-        await runner.run_command(command)
+            return process.stdout
 
-        return {
-            "osint": "harvester scan completed"
-        }
+        except Exception as e:
+            return f"Harvester error: {str(e)}"
