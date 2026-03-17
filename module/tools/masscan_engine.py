@@ -1,15 +1,8 @@
-import json
-import os
-from module.tools.tool_runner import ToolRunner
-
+import subprocess
 
 class MasscanEngine:
 
     async def run(self, target):
-
-        runner = ToolRunner()
-
-        output_file = "masscan_results.json"
 
         cmd = [
             "sudo",
@@ -19,18 +12,25 @@ class MasscanEngine:
             "--rate", "1000"
         ]
 
-        await runner.run_cmd(cmd)
+        try:
+            process = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True
+            )
 
-        if not os.path.exists(output_file):
+            output = process.stdout
+
+            ports = []
+
+            for line in output.splitlines():
+                if "open port" in line:
+                    parts = line.split()
+                    port = int(parts[2])
+                    ports.append(port)
+
+            return ports
+
+        except Exception as e:
+            print(f"[!] Masscan error: {e}")
             return []
-
-        with open(output_file) as f:
-            data = json.load(f)
-
-        ports = []
-
-        for host in data:
-            for port in host.get("ports", []):
-                ports.append(port.get("port"))
-
-        return ports
