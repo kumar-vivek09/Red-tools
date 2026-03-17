@@ -72,13 +72,10 @@ class Orchestrator:
         print("[+] Phase 1 → Fast port discovery (Masscan)")
 
         masscan = MasscanEngine()
-        ports = await self.safe_run(masscan.run(target), 60)
 
-        if not ports:
-            print("[!] Masscan found no ports → falling back to Nmap")
+        ports = await masscan.run(target)  # ❗ REMOVE safe_run here
 
         results["masscan_ports"] = ports
-
 
         # ===============================
         # Phase 2 – Nmap
@@ -86,14 +83,16 @@ class Orchestrator:
 
         print("[+] Phase 2 → Detailed service scan (Nmap)")
 
-        nmap = NmapEngine()
+        nmap = NmapEngine(self.scan_level)
 
         if ports:
-            nmap_results = await self.safe_run(nmap.execute_ports(target, ports), 120)
+            nmap_results = await nmap.execute_ports(target, ports)
         else:
-            nmap_results = await self.safe_run(nmap.execute(target), 120)
+            print("[!] Masscan failed → running full Nmap scan")
+            nmap_results = await nmap.execute(target)
 
         results.update(nmap_results)
+
 
 
         # ===============================
