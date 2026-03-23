@@ -4,11 +4,13 @@ class MasscanEngine:
 
     async def run(self, target):
 
+        print("[DEBUG] Running Masscan...")
+
         cmd = [
             "sudo",
             "masscan",
             target,
-            "-p1-65535",
+            "-p80,443,22",
             "--rate", "1000"
         ]
 
@@ -19,18 +21,20 @@ class MasscanEngine:
                 text=True
             )
 
-            output = process.stdout
+            print("[DEBUG] Masscan finished")
 
+            output = process.stdout
             ports = []
 
             for line in output.splitlines():
                 if "open port" in line:
                     parts = line.split()
-                    port = int(parts[2])
-                    ports.append(port)
+                    ports.append(int(parts[2]))
+
+            print(f"[DEBUG] Masscan ports: {ports}")
 
             return ports
 
         except Exception as e:
-            print(f"[!] Masscan error: {e}")
+            print(f"[ERROR] Masscan failed: {e}")
             return []

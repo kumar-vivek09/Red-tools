@@ -73,7 +73,9 @@ class Orchestrator:
 
         masscan = MasscanEngine()
 
-        ports = await masscan.run(target)  # ❗ REMOVE safe_run here
+        ports = await masscan.run(target)  # ❗ direct await
+
+        print(f"[DEBUG] Ports from masscan: {ports}")
 
         results["masscan_ports"] = ports
 
@@ -86,12 +88,17 @@ class Orchestrator:
         nmap = NmapEngine(self.scan_level)
 
         if ports:
+            print("[DEBUG] Running Nmap on discovered ports")
             nmap_results = await nmap.execute_ports(target, ports)
         else:
-            print("[!] Masscan failed → running full Nmap scan")
+            print("[DEBUG] Masscan empty → running full Nmap")
             nmap_results = await nmap.execute(target)
 
+        print("[DEBUG] Nmap completed")
+
         results.update(nmap_results)
+
+        print(f"[DEBUG] Open ports: {results.get('open_ports')}")
 
 
 
