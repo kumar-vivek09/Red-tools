@@ -40,7 +40,7 @@ class Orchestrator:
 
     def __init__(self, scan_level=1):
         self.scan_level = scan_level
-        self.SHODAN_API_KEY = "YOUR_SHODAN_KEY"
+        self.SHODAN_API_KEY = "r48wSWX5zJSgpqBVURSC8QVPCmKn9Qrd"
 
     def sanitize(self, obj):
         if isinstance(obj, dict):
