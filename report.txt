@@ -1,0 +1,302 @@
+
+=====================================================
+        ARCHAI PRO SCANNER
+ AI-Orchestrated Recon Intelligence Framework
+=====================================================
+
+
+ █████╗ ██████╗  ██████╗██╗  ██╗ █████╗ ██╗
+██╔══██╗██╔══██╗██╔════╝██║  ██║██╔══██╗██║
+███████║██████╔╝██║     ███████║███████║██║
+██╔══██║██╔══██╗██║     ██╔══██║██╔══██║██║
+██║  ██║██║  ██║╚██████╗██║  ██║██║  ██║██║
+╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝
+
+AI-Orchestrated Recon Intelligence Framework
+
+Select Scan Mode
+
+[1] Light Scan (Fast Recon)
+[2] Balanced Scan (Professional)
+[3] Aggressive Scan (Full Research)
+[4] Intelligent Adaptive Scan (Security-Focused)
+[5] Exit
+
+Select Scan Mode: 4
+
+Enter Target Domain: scanme.nmap.org
+
+[+] Starting ARCHAI scan for: scanme.nmap.org
+[+] Scan Level: 4
+
+
+[+] Starting ARCHAI scan for: scanme.nmap.org
+
+[+] Phase 1 → Fast port discovery (Masscan)
+[DEBUG] Running Masscan...
+[DEBUG] Masscan finished
+[DEBUG] Masscan ports: []
+[DEBUG] Ports from masscan: []
+[+] Phase 2 → Detailed service scan (Nmap)
+[DEBUG] Masscan empty → running full Nmap
+[DEBUG] Nmap completed
+[DEBUG] Open ports: [22, 80, 9929, 31337]
+[+] Phase 3 → Recon + crawling pipeline
+[+] Phase 4 → Vulnerability scanners
+virtual const QPalette* Qt6CTPlatformTheme::palette(QPlatformTheme::Palette) const QPlatformTheme::SystemPalette
+virtual const QPalette* Qt6CTPlatformTheme::palette(QPlatformTheme::Palette) const QPlatformTheme::ToolButtonPalette
+virtual const QPalette* Qt6CTPlatformTheme::palette(QPlatformTheme::Palette) const QPlatformTheme::ButtonPalette
+virtual const QPalette* Qt6CTPlatformTheme::palette(QPlatformTheme::Palette) const QPlatformTheme::CheckBoxPalette
+virtual const QPalette* Qt6CTPlatformTheme::palette(QPlatformTheme::Palette) const QPlatformTheme::RadioButtonPalette
+virtual const QPalette* Qt6CTPlatformTheme::palette(QPlatformTheme::Palette) const QPlatformTheme::HeaderPalette
+virtual const QPalette* Qt6CTPlatformTheme::palette(QPlatformTheme::Palette) const QPlatformTheme::ItemViewPalette
+virtual const QPalette* Qt6CTPlatformTheme::palette(QPlatformTheme::Palette) const QPlatformTheme::MessageBoxLabelPelette
+virtual const QPalette* Qt6CTPlatformTheme::palette(QPlatformTheme::Palette) const QPlatformTheme::TabBarPalette
+virtual const QPalette* Qt6CTPlatformTheme::palette(QPlatformTheme::Palette) const QPlatformTheme::LabelPalette
+virtual const QPalette* Qt6CTPlatformTheme::palette(QPlatformTheme::Palette) const QPlatformTheme::GroupBoxPalette
+virtual const QPalette* Qt6CTPlatformTheme::palette(QPlatformTheme::Palette) const QPlatformTheme::MenuPalette
+virtual const QPalette* Qt6CTPlatformTheme::palette(QPlatformTheme::Palette) const QPlatformTheme::MenuBarPalette
+virtual const QPalette* Qt6CTPlatformTheme::palette(QPlatformTheme::Palette) const QPlatformTheme::TextEditPalette
+virtual const QPalette* Qt6CTPlatformTheme::palette(QPlatformTheme::Palette) const QPlatformTheme::TextEditPalette
+virtual const QPalette* Qt6CTPlatformTheme::palette(QPlatformTheme::Palette) const QPlatformTheme::TextLineEditPalette
+virtual const QPalette* Qt6CTPlatformTheme::palette(QPlatformTheme::Palette) const QPlatformTheme::ToolTipPalette
+virtual QVariant Qt6CTPlatformTheme::themeHint(QPlatformTheme::ThemeHint) const
+virtual const QPalette* Qt6CTPlatformTheme::palette(QPlatformTheme::Palette) const QPlatformTheme::SystemPalette
+
+============================================================
+🤖 AI GENERATED SECURITY REPORT
+============================================================
+
+================ AI SECURITY REPORT ================
+
+Target: scanme.nmap.org
+
+================ EXECUTIVE SUMMARY ================
+The assessment of scanme.nmap.org revealed open network services detected, web technologies identified. This indicates a measurable attack surface that could be explored by attackers. The overall exposure level is High.
+
+================ TECHNICAL FINDINGS ===============
+- Open Ports: [22, 80, 9929, 31337]
+- Technologies: ['OpenSSH 6.6.1p1 Ubuntu 2ubuntu2.13', 'Apache httpd 2.4.7', 'Nping echo']
+- Crawled URLs: ['http://scanme.nmap.org', 'http://scanme.nmap.org/site.css', 'http://scanme.nmap.org/shared/css/nst-foot.css?v=2', 'http://scanme.nmap.org/shared/js/nst.js?v=2', 'http://scanme.nmap.org/shared/css/nst.css?v=2']
+- Nikto scan completed (web misconfigurations checked)
+- Dalfox scan completed (XSS testing performed)
+
+================ RISK ANALYSIS ====================
+Score: 5.4
+Level: High
+Assessment: Medium risk – Should be addressed soon.
+
+================ ATTACK PATH ======================
+- Recon → Web server discovered → Directory enumeration → Vulnerability discovery → Possible web shell access
+- Recon → SSH service detected → Credential attack surface → Possible unauthorized access
+- Recon → Software version identified → CVE discovered → Potential exploitation path
+
+================ RECOMMENDATIONS ==================
+- Restrict unnecessary open ports using firewall rules.
+- Keep all technologies updated and patched.
+
+==================================================
+
+
+[+] ARCHAI scan completed successfully
+
+
+========== ARCHAI INTELLIGENCE REPORT ==========
+
+masscan_ports : []
+open_ports : [22, 80, 9929, 31337]
+technologies : ['OpenSSH 6.6.1p1 Ubuntu 2ubuntu2.13', 'Apache httpd 2.4.7', 'Nping echo']
+os_detection : None
+risk_score : 6.5
+whatweb : {}
+ffuf : []
+nuclei : []
+harvester : Read proxies.yaml from /etc/theHarvester/proxies.yaml
+*******************************************************************
+*  _   _                                            _             *
+* | |_| |__   ___    /\  /\__ _ _ ____   _____  ___| |_ ___ _ __  *
+* | __|  _ \ / _ \  / /_/ / _` | '__\ \ / / _ \/ __| __/ _ \ '__| *
+* | |_| | | |  __/ / __  / (_| | |   \ V /  __/\__ \ ||  __/ |    *
+*  \__|_| |_|\___| \/ /_/ \__,_|_|    \_/ \___||___/\__\___|_|    *
+*                                                                 *
+* theHarvester 4.10.1                                             *
+* Coded by Christian Martorella                                   *
+* Edge-Security Research                                          *
+* cmartorella@edge-security.com                                   *
+*                                                                 *
+*******************************************************************
+
+[*] Target: scanme.nmap.org 
+
+Read api-keys.yaml from /etc/theHarvester/api-keys.yaml
+Failed to process bevigil search for word: 'scanme.nmap.org'
+Error Message: while scanning a simple key
+  in "<unicode string>", line 20, column 5:
+        secret:censys_EKwLFYgC_7RvLFnDJi ... 
+        ^
+could not find expected ':'
+  in "<unicode string>", line 22, column 3:
+      criminalip:
+      ^
+Read api-keys.yaml from /etc/theHarvester/api-keys.yaml
+Failed to process bitbucket search for word: 'scanme.nmap.org'
+Error Message: while scanning a simple key
+  in "<unicode string>", line 20, column 5:
+        secret:censys_EKwLFYgC_7RvLFnDJi ... 
+        ^
+could not find expected ':'
+  in "<unicode string>", line 22, column 3:
+      criminalip:
+      ^
+Read api-keys.yaml from /etc/theHarvester/api-keys.yaml
+Failed to process bufferoverun search for word: 'scanme.nmap.org'
+Error Message: while scanning a simple key
+  in "<unicode string>", line 20, column 5:
+        secret:censys_EKwLFYgC_7RvLFnDJi ... 
+        ^
+could not find expected ':'
+  in "<unicode string>", line 22, column 3:
+      criminalip:
+      ^
+Read api-keys.yaml from /etc/theHarvester/api-keys.yaml
+Failed to process builtwith search for word: 'scanme.nmap.org'
+Error Message: while scanning a simple key
+  in "<unicode string>", line 20, column 5:
+        secret:censys_EKwLFYgC_7RvLFnDJi ... 
+        ^
+could not find expected ':'
+  in "<unicode string>", line 22, column 3:
+      criminalip:
+      ^
+Read api-keys.yaml from /etc/theHarvester/api-keys.yaml
+Failed to process brave search for word: 'scanme.nmap.org'
+Error Message: while scanning a simple key
+  in "<unicode string>", line 20, column 5:
+        secret:censys_EKwLFYgC_7RvLFnDJi ... 
+        ^
+could not find expected ':'
+  in "<unicode string>", line 22, column 3:
+      criminalip:
+      ^
+Read api-keys.yaml from /etc/theHarvester/api-keys.yaml
+Unexpected error occurred in Censys module: while scanning a simple key
+  in "<unicode string>", line 20, column 5:
+        secret:censys_EKwLFYgC_7RvLFnDJi ... 
+        ^
+could not find expected ':'
+  in "<unicode string>", line 22, column 3:
+      criminalip:
+      ^
+Read api-keys.yaml from /etc/theHarvester/api-keys.yaml
+A Missing Key error occurred in Chaos: 
+[!] Missing API key for Chaos (ProjectDiscovery). 
+Read api-keys.yaml from /etc/theHarvester/api-keys.yaml
+Failed to process criminalip search for word: 'scanme.nmap.org'
+Error Message: while scanning a simple key
+  in "<unicode string>", line 20, column 5:
+        secret:censys_EKwLFYgC_7RvLFnDJi ... 
+        ^
+could not find expected ':'
+  in "<unicode string>", line 22, column 3:
+      criminalip:
+      ^
+Read api-keys.yaml from /etc/theHarvester/api-keys.yaml
+Failed to process dehashed search for word: 'scanme.nmap.org'
+Error Message: while scanning a simple key
+  in "<unicode string>", line 20, column 5:
+        secret:censys_EKwLFYgC_7RvLFnDJi ... 
+        ^
+could not find expected ':'
+  in "<unicode string>", line 22, column 3:
+      criminalip:
+      ^
+Read api-keys.yaml from /etc/theHarvester/api-keys.yaml
+Failed to process dnsdumpster search for word: 'scanme.nmap.org'
+Error Message: while scanning a simple key
+  in "<unicode string>", line 20, column 5:
+        secret:censys_EKwLFYgC_7RvLFnDJi ... 
+        ^
+could not find expected ':'
+  in "<unicode string>", line 22, column 3:
+      criminalip:
+      ^
+Read api-keys.yaml from /etc/theHarvester/api-keys.yaml
+A Missing Key error occurred in Fofa: 
+[!] Missing API key for Fofa API (key and email required). 
+Read api-keys.yaml from /etc/theHarvester/api-keys.yaml
+Read api-keys.yaml from /etc/theHarvester/api-keys.yaml
+Error initializing SearchGithubCode: while scanning a simple key
+  in "<unicode string>", line 20, column 5:
+        secret:censys_EKwLFYgC_7RvLFnDJi ... 
+        ^
+could not find expected ':'
+  in "<unicode string>", line 22, column 3:
+      criminalip:
+      ^
+while scanning a simple key
+  in "<unicode string>", line 20, column 5:
+        secret:censys_EKwLFYgC_7RvLFnDJi ... 
+        ^
+could not find expected ':'
+  in "<unicode string>", line 22, column 3:
+      criminalip:
+      ^
+
+gowitness : {'screenshot': 'http://scanme.nmap.org'}
+katana_urls : ['http://scanme.nmap.org', 'http://scanme.nmap.org/site.css', 'http://scanme.nmap.org/shared/css/nst-foot.css?v=2', 'http://scanme.nmap.org/shared/js/nst.js?v=2', 'http://scanme.nmap.org/shared/css/nst.css?v=2', 'http://scanme.nmap.org/', 'https://nmap.org/npsl/', 'https://nmap.org/book/install.html', 'https://nmap.org/book/man.html', 'https://nmap.org', 'https://nmap.org/download.html', 'https://nmap.org/oem/', 'https://nmap.org/docs.html', 'https://nmap.org/book/man-examples.html', 'https://nmap.org/book/man-os-detection.html', 'https://nmap.org/book/man-book.html', 'https://nmap.org/book/man-misc-options.html', 'https://nmap.org/mailman/listinfo/dev', 'https://nmap.org/book/man-runtime-interaction.html', 'https://nmap.org/book/man-version-detection.html', 'https://nmap.org/oem/', 'https://nmap.org/docs.html', 'https://nmap.org/man/zh/man-os-detection.html', 'https://nmap.org/man/zh/man-examples.html', 'https://nmap.org/', 'https://nmap.org/mailman/listinfo/announce', 'https://nmap.org/man/zh/man-book.html', 'https://nmap.org/man/zh/man-misc-options.html', 'https://nmap.org/mailman/listinfo/dev', 'https://nmap.org/man/sk/man-version-detection.html', 'https://nmap.org/man/zh/man-runtime-interaction.html', 'https://nmap.org/mailman/listinfo/announce', 'https://nmap.org/mailman/admin/announce', 'https://nmap.org/man/ru/man-version-detection.html', 'https://nmap.org/oem/docs/Nmap-OEM-Software-Redistribution-License-Contract.docx', 'https://nmap.org/man/pl/man-version-detection.html', 'https://nmap.org/man/ro/man-version-detection.html', 'https://nmap.org/man/it/man-version-detection.html', 'https://nmap.org/man/hu/man-version-detection.html', 'https://nmap.org/man/hr/man-version-detection.html', 'https://nmap.org/man/fr/man-version-detection.html', 'https://nmap.org/man/ja/man-version-detection.html', 'https://nmap.org/man/de/man-version-detection.html', 'https://nmap.org/man/id/man-version-detection.html', 'https://nmap.org/man/ru/man-runtime-interaction.html', 'https://nmap.org/man/ro/man-runtime-interaction.html', 'https://nmap.org/man/es/man-version-detection.html', 'https://nmap.org/man/pt_BR/man-runtime-interaction.html', 'https://nmap.org/man/sk/man-runtime-interaction.html', 'https://nmap.org/man/ja/man-runtime-interaction.html', 'https://nmap.org/man/it/man-runtime-interaction.html', 'https://nmap.org/man/zh/man-version-detection.html', 'https://nmap.org/man/pt_PT/man-runtime-interaction.html', 'https://nmap.org/man/pl/man-runtime-interaction.html', 'https://nmap.org/man/hr/man-runtime-interaction.html', 'https://nmap.org/man/fr/man-runtime-interaction.html', 'https://nmap.org/man/id/man-runtime-interaction.html', 'https://nmap.org/man/es/man-runtime-interaction.html', 'https://nmap.org/man/pt_PT/man-version-detection.html', 'https://nmap.org/shared/css/main.css', 'https://nmap.org/shared/css/mailman.css', 'https://nmap.org/man/hu/man-runtime-interaction.html', 'https://nmap.org/man/pt_BR/man-version-detection.html', 'https://nmap.org/man/sk/man-misc-options.html', 'https://nmap.org/mailman/admin/dev', 'https://nmap.org/man/pt_BR/man-misc-options.html', 'https://nmap.org/man/it/man-misc-options.html', 'https://nmap.org/man/ru/man-misc-options.html', 'https://nmap.org/man/ro/man-misc-options.html', 'https://nmap.org/man/id/man-misc-options.html', 'https://nmap.org/man/pt_PT/man-misc-options.html', 'https://nmap.org/man/de/man-runtime-interaction.html', 'https://nmap.org/man/ja/man-misc-options.html', 'https://nmap.org/man/pl/man-misc-options.html', 'https://nmap.org/man/hr/man-misc-options.html', 'https://nmap.org/man/fr/man-misc-options.html', 'https://nmap.org/man/sk/man-book.html', 'https://nmap.org/man/de/man-misc-options.html', 'https://nmap.org/man/ru/man-book.html', 'https://nmap.org/mailman/listinfo', 'https://nmap.org/man/ro/man-book.html', 'https://nmap.org/man/hu/man-misc-options.html', 'https://nmap.org/man/pt_PT/man-book.html', 'https://nmap.org/man/pt_BR/man-book.html', 'https://nmap.org/man/pl/man-book.html', 'https://nmap.org/man/ja/man-book.html', 'https://nmap.org/man/id/man-book.html', 'https://nmap.org/man/it/man-book.html', 'https://nmap.org/man/es/man-misc-options.html', 'https://nmap.org/man/hu/man-book.html', 'https://nmap.org/man/hr/man-book.html', 'https://nmap.org/man/fr/man-book.html', 'https://nmap.org/man/es/man-book.html', 'https://nmap.org/man/de/man-book.html', 'https://nmap.org/man/sk/man-os-detection.html', 'https://nmap.org/man/pt_PT/man-os-detection.html', 'https://nmap.org/man/pt_BR/man-os-detection.html', 'https://nmap.org/man/id/man-os-detection.html', 'https://nmap.org/book', 'https://nmap.org/man/ru/man-os-detection.html', 'https://nmap.org/man/hu/man-os-detection.html', 'https://nmap.org/man/hr/man-os-detection.html', 'https://nmap.org/man/pl/man-os-detection.html', 'https://nmap.org/man/fr/man-os-detection.html', 'https://nmap.org/man/ro/man-os-detection.html', 'https://nmap.org/man/ja/man-os-detection.html', 'https://nmap.org/man/it/man-os-detection.html', 'https://nmap.org/man/es/man-os-detection.html', 'https://nmap.org/man/de/man-os-detection.html', 'https://nmap.org/man/sk/man-examples.html', 'https://nmap.org/man/ru/man-examples.html', 'https://nmap.org/man/ro/man-examples.html', 'https://nmap.org/man/pt_PT/man-examples.html', 'https://nmap.org/man/pt_BR/man-examples.html', 'https://nmap.org/man/id/man-examples.html', 'https://nmap.org/man/hu/man-examples.html', 'https://nmap.org/man/hr/man-examples.html', 'https://nmap.org/man/fr/man-examples.html', 'https://nmap.org/man/es/man-examples.html', 'https://nmap.org/man/de/man-examples.html', 'https://nmap.org/man/ja/man-examples.html', 'https://nmap.org/man/pl/man-examples.html', 'https://nmap.org/man/it/man-examples.html', 'https://nmap.org/zenmap/man.html', 'https://nmap.org/nmap-fingerprinting-article-pl.html', 'https://nmap.org/bennieston-tutorial/', 'https://nmap.org/book/idlescan.html', 'https://nmap.org/nmap-fingerprinting-article-cn.html', 'https://nmap.org/nmap-fingerprinting-article-jp.html', 'https://nmap.org/zenmap/man.html', 'https://nmap.org/nmap-fingerprinting-article-id.html', 'https://nmap.org/nmap-fingerprinting-article-pl.html', 'https://nmap.org/book/firewalls.html', 'https://nmap.org/nmap-fingerprinting-article-nl.html', 'https://nmap.org/nmap-fingerprinting-article-se.html', 'https://nmap.org/nsedoc/scripts/ipidseq.html', 'https://nmap.org/nmap-fingerprinting-article-tw.html', 'https://nmap.org/nmap-fingerprinting-article-tr.html', 'https://nmap.org/idlescan-pt-br.html', 'https://nmap.org/nmap-fingerprinting-article-jp.html', 'https://nmap.org/nmap-fingerprinting-article-cn.html', 'https://nmap.org/nmap-fingerprinting-article-tw.html', 'https://nmap.org/nmap-fingerprinting-article-id.html', 'https://nmap.org/nmap-fingerprinting-article-il.html', 'https://nmap.org/nmap-fingerprinting-article-tr.html', 'https://nmap.org/book/scan-methods-ip-protocol-scan.html', 'https://nmap.org/nmap-fingerprinting-article.html', 'https://nmap.org/book/scan-methods-maimon-scan.html', 'https://nmap.org/book/scan-methods.html', 'https://nmap.org/nmap-fingerprinting-article-nl.html', 'https://nmap.org/idlescan-es.html', 'https://nmap.org/nmap-fingerprinting-article-pt.html', 'http://nmap.org/', 'https://nmap.org/nmap-fingerprinting-article-il.html', 'https://nmap.org/nmap-fingerprinting-article-it/stackf.html', 'https://nmap.org/nmap-fingerprinting-article-se.html', 'https://nmap.org/nmap-fingerprinting-article-de.html', 'http://nmap.org/docs.html', 'https://nmap.org/nsedoc/', 'https://nmap.org/presentations/', 'https://nmap.org/nmap-fingerprinting-article-it/stackf.html', 'https://nmap.org/nmap-fingerprinting-article-it/stackf-8.html', 'https://nmap.org/xlate-faq.html', 'https://nmap.org/nsedoc/luadoc.js', 'https://nmap.org/nmap-fingerprinting-article-it/stackf-7.html', 'https://nmap.org/presentations/CanSecWest01/', 'https://nmap.org/nmap-fingerprinting-article-de.html', 'https://nmap.org/nmap-fingerprinting-article-fr.html', 'https://nmap.org/presentations/ACS01/', 'https://nmap.org/xlate-faq.html', 'https://nmap.org/presentations/OSDEM01/', 'https://nmap.org/nmap-fingerprinting-article-mx.html', 'https://nmap.org/presentations/CanSecWest03/', 'https://nmap.org/presentations/SFOBUG03/', 'https://nmap.org/presentations/Defcon11/', 'https://nmap.org/nmap-fingerprinting-old.html', 'https://nmap.org/presentations/Yahoo03/', 'https://nmap.org/nmap-fingerprinting-article-ru.html', 'https://nmap.org/presentations/CanSecWest05/', 'https://nmap.org/presentations/IT-Defense04/', 'https://nmap.org/presentations/Defcon13/', 'https://nmap.org/presentations/CSW09/', 'https://nmap.org/presentations/iSec08/', 'https://nmap.org/nmap-fingerprinting-article-mx.html', 'https://nmap.org/nmap-fingerprinting-article-fr.html', 'https://nmap.org/presentations/Sharkfest11/', 'https://nmap.org/nmap-fingerprinting-old.html', 'https://nmap.org/presentations/Shmoo06/', 'https://nmap.org/presentations/BHDC08/', 'https://nmap.org/osdetect/', 'https://nmap.org/nsedoc/luadoc.css', 'https://nmap.org/data/man-xlate/', 'https://svn.nmap.org/nmap/docs/man-xlate/', 'https://nmap.org/presentations/Shmoo06', 'https://nmap.org/nsedoc/categories/version.html', 'https://nmap.org/nsedoc/categories/malware.html', 'https://nmap.org/nmap-fingerprinting-article-ru.html', 'https://nmap.org/svn/docs/man-xlate/', 'https://nmap.org/nsedoc/categories/info.html', 'https://nmap.org/nsedoc/categories/vuln.html', 'https://nmap.org/nsedoc/categories/intrusive.html', 'https://nmap.org/nsedoc/categories/safe.html', 'https://nmap.org/data/nmap-man.xml', 'https://svn.nmap.org/nmap/docs/man-xlate/nmap-zh.1', 'https://svn.nmap.org/nmap/docs/man-xlate/nmap-sk.1', 'https://svn.nmap.org/nmap/docs/man-xlate/nmap-man-sk.xml', 'https://svn.nmap.org/nmap/docs/man-xlate/nmap-ru.1', 'https://svn.nmap.org/nmap/docs/man-xlate/nmap-man-pt_PT.xml', 'https://svn.nmap.org/nmap/docs/man-xlate/nmap-pt_PT.1', 'https://svn.nmap.org/nmap/docs/man-xlate/nmap-m
+assetfinder_subdomains : []
+nikto : {'nikto_output': '- Nikto v2.6.0\n---------------------------------------------------------------------------\n+ [FAIL] Unable to connect to scanme.nmap.org:80.\n'}
+dalfox : {'dalfox_output': ''}
+infrastructure : {'ip': '45.33.32.156', 'asn': None, 'country': None}
+infrastructure_type : unknown
+nvd_cves : [{'cve_id': 'CVE-2021-44224', 'cvss': 8.2}]
+anomalies : ['Unusual high port detected: 31337']
+final_risk_score : 5.4
+exposure_level : High
+confidence_score : 0.8
+vulnerability_analysis : [{'service': 'SSH', 'issue': 'Possible brute force attack surface', 'severity': 'Medium'}, {'service': 'Software', 'issue': 'CVE-2021-44224', 'severity': 'High'}]
+attack_paths : ['Recon → Web server discovered → Directory enumeration → Vulnerability discovery → Possible web shell access', 'Recon → SSH service detected → Credential attack surface → Possible unauthorized access', 'Recon → Software version identified → CVE discovered → Potential exploitation path']
+post_exploitation : ['If access is obtained, attacker may attempt privilege escalation', 'Possible credential harvesting from system memory or files', 'Potential lateral movement to other internal services', 'Persistence mechanisms could be installed', 'Sensitive data exposure or database extraction risk']
+attack_graph : ['SSH service detected → Credential brute-force → Privilege escalation', 'Web server detected → Directory enumeration → Web vulnerability scanning', 'Web application → Authentication bypass → Sensitive data exposure']
+attack_graph_visualization : attack_graph_scanme_nmap_org.png
+exploit_suggestions : [{'cve': 'CVE-2021-44224', 'exploit_search': 'searchsploit CVE-2021-44224', 'framework': 'Metasploit', 'notes': 'Check exploit-db or metasploit modules'}]
+pentest_report : archai_pentest_report_scanme_nmap_org.json
+ai_report : 
+================ AI SECURITY REPORT ================
+
+Target: scanme.nmap.org
+
+================ EXECUTIVE SUMMARY ================
+The assessment of scanme.nmap.org revealed open network services detected, web technologies identified. This indicates a measurable attack surface that could be explored by attackers. The overall exposure level is High.
+
+================ TECHNICAL FINDINGS ===============
+- Open Ports: [22, 80, 9929, 31337]
+- Technologies: ['OpenSSH 6.6.1p1 Ubuntu 2ubuntu2.13', 'Apache httpd 2.4.7', 'Nping echo']
+- Crawled URLs: ['http://scanme.nmap.org', 'http://scanme.nmap.org/site.css', 'http://scanme.nmap.org/shared/css/nst-foot.css?v=2', 'http://scanme.nmap.org/shared/js/nst.js?v=2', 'http://scanme.nmap.org/shared/css/nst.css?v=2']
+- Nikto scan completed (web misconfigurations checked)
+- Dalfox scan completed (XSS testing performed)
+
+================ RISK ANALYSIS ====================
+Score: 5.4
+Level: High
+Assessment: Medium risk – Should be addressed soon.
+
+================ ATTACK PATH ======================
+- Recon → Web server discovered → Directory enumeration → Vulnerability discovery → Possible web shell access
+- Recon → SSH service detected → Credential attack surface → Possible unauthorized access
+- Recon → Software version identified → CVE discovered → Potential exploitation path
+
+================ RECOMMENDATIONS ==================
+- Restrict unnecessary open ports using firewall rules.
+- Keep all technologies updated and patched.
+
+==================================================
+
+report_file : archai_report_scanme_nmap_org.json
+
+================================================
+
+                                                                                                                                                                                                                                           
+┌──(unknown㉿kali)-[~/Red-tools]
+└─$ 
+S

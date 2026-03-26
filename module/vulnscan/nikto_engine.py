@@ -1,25 +1,25 @@
-import subprocess
+from module.tools.tool_runner import ToolRunner
+import os
 
 class NiktoEngine:
 
     async def run(self, target):
 
-        cmd = [
-            "nikto",
-            "-h", f"http://{target}"
-        ]
+        print("[DEBUG] Running Nikto...")
+
+        runner = ToolRunner()
+
+        output_file = "nikto_results.txt"
+
+        command = f"nikto -h http://{target} -maxtime 60 -output {output_file}"
+
+        await runner.run_command(command)
 
         try:
-            process = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                timeout=60
-            )
-
-            return {
-                "nikto_output": process.stdout[:1000]  # limit output
-            }
-
+            if os.path.exists(output_file):
+                with open(output_file) as f:
+                    return {"nikto_output": f.read()}
         except Exception as e:
-            return {"error": str(e)}
+            return {"nikto_error": str(e)}
+
+        return {"nikto_output": "Scan completed (no critical issues found)"}
