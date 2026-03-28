@@ -1,18 +1,23 @@
 import asyncio
-import subprocess
 
 class ToolRunner:
 
     async def run_command(self, command):
 
-        print(f"[DEBUG] Executing: {command}")
+        print(f"[LIVE] Running: {command}")
 
         process = await asyncio.create_subprocess_shell(
             command,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.STDOUT
         )
 
-        await process.communicate()
+        while True:
+            line = await process.stdout.readline()
+            if not line:
+                break
+            print(line.decode().strip())
 
-        print(f"[DEBUG] Finished: {command}")
+        await process.wait()
+
+        print(f"[DONE] {command}")
