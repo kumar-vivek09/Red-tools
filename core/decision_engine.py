@@ -1,48 +1,45 @@
-# core/decision_engine.py
-
 class DecisionEngine:
 
-    def __init__(self):
-        pass
+    def decide(self, results):
 
-    def evaluate(self, context):
-        """
-        Analyze context and determine next actions.
-        """
+        ports = results.get("open_ports", [])
+        tech = str(results.get("technologies", [])).lower()
+        urls = results.get("katana_urls", [])
 
-        actions = []
+        decisions = {
+            "run_ffuf": False,
+            "run_nikto": False,
+            "run_dalfox": False,
+            "run_sqlmap": False,
+            "run_nuclei": True,
+            "priority": "low"
+        }
 
-        # Port-based logic
-        if 80 in context.get("open_ports", []) or 443 in context.get("open_ports", []):
-            actions.append("tech_detect")
+        # -------------------------
+        # WEB DETECTION
+        # -------------------------
+        if 80 in ports or 443 in ports:
+            decisions["run_ffuf"] = True
+            decisions["run_nikto"] = True
 
-        if 22 in context.get("open_ports", []):
-            actions.append("ssh_analysis")
+        # -------------------------
+        # XSS / Injection detection
+        # -------------------------
+        if "php" in tech or "apache" in tech or "nginx" in tech:
+            decisions["run_dalfox"] = True
 
-        # Technology-based logic
-        for tech in context.get("technologies", []):
-            if "Apache" in tech:
-                actions.append("apache_checks")
+        # -------------------------
+        # SQL Injection detection
+        # -------------------------
+        if any("?" in url for url in urls):
+            decisions["run_sqlmap"] = True
 
-            if "PHP" in tech:
-                actions.append("php_analysis")
+        # -------------------------
+        # PRIORITY
+        # -------------------------
+        if len(ports) > 5:
+            decisions["priority"] = "high"
+        elif ports:
+            decisions["priority"] = "medium"
 
-        # Header-based logic
-        if len(context.get("header_issues", [])) > 2:
-            actions.append("misconfig_detection")
-
-        return list(set(actions))
-
-
-    def calculate_priority(self, context):
-        """
-        Assign weighted priority to findings.
-        """
-
-        priority_score = 0
-
-        priority_score += len(context.get("open_ports", [])) * 2
-        priority_score += len(context.get("header_issues", [])) * 3
-        priority_score += len(context.get("subdomains", [])) * 1
-
-        return min(priority_score, 100)
+        return decisions

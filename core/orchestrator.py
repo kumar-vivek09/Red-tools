@@ -2,21 +2,27 @@ import asyncio
 import json
 from datetime import datetime
 
+# Recon
 from module.recon.nmap_engine import NmapEngine
 from module.tools.masscan_engine import MasscanEngine
 
+# Crawling
 from module.crawling.katana_engine import KatanaEngine
 from module.crawling.assetfinder_engine import AssetfinderEngine
 
+# Tools
 from module.tools.whatweb_engine import WhatWebEngine
 from module.tools.ffuf_engine import FfufEngine
 from module.tools.nuclei_engine import NucleiEngine
 from module.tools.harvester_engine import HarvesterEngine
 from module.tools.gowitness_engine import GoWitnessEngine
 
+# Vuln
 from module.vulnscan.nikto_engine import NiktoEngine
 from module.vulnscan.dalfox_engine import DalfoxEngine
+from module.vulnscan.sqlmap_engine import SqlmapEngine
 
+# Intelligence
 from module.intelligence.risk_scoring import RiskScoring
 from module.intelligence.confidence_engine import ConfidenceEngine
 from module.intelligence.asn_lookup import ASNLookup
@@ -27,9 +33,18 @@ from module.intelligence.exposure_classifier import ExposureClassifier
 from module.intelligence.vulnerability_reasoner import VulnerabilityReasoner
 from module.intelligence.exploit_mapper import ExploitMapper
 
+# Attack
 from module.attack.attack_chain_builder import AttackChainBuilder
 from module.attack.post_exploit_simulator import PostExploitSimulator
+from module.attack.attack_simulator import AttackSimulator
 
+# AI Engines
+from core.decision_engine import DecisionEngine
+from module.attack.exploit_engine import ExploitEngine
+from module.attack.payload_engine import PayloadEngine
+from module.attack.adaptive_engine import AdaptiveEngine
+
+# Graph + Report
 from core.attack_graph import AttackGraph
 from core.graph_visualizer import GraphVisualizer
 from core.report_generator import ReportGenerator
@@ -40,8 +55,11 @@ class Orchestrator:
 
     def __init__(self, scan_level=1):
         self.scan_level = scan_level
-        self.SHODAN_API_KEY = "r48wSWX5zJSgpqBVURSC8QVPCmKn9Qrd"
+        self.SHODAN_API_KEY = "YOUR_SHODAN_KEY"
 
+    # -------------------------
+    # SANITIZE JSON
+    # -------------------------
     def sanitize(self, obj):
         if isinstance(obj, dict):
             return {k: self.sanitize(v) for k, v in obj.items()}
@@ -51,55 +69,68 @@ class Orchestrator:
             return str(obj)
         return obj
 
-    async def safe_run(self, coro, timeout=120):
+    # -------------------------
+    # SAFE RUN
+    # -------------------------
+    async def safe_run(self, coro, timeout=300):
         try:
             return await asyncio.wait_for(coro, timeout)
         except Exception as e:
             return str(e)
 
+    # -------------------------
+    # MAIN RUN
+    # -------------------------
     async def run(self, target):
 
-        print(f"\n[+] Starting ARCHAI scan for: {target}\n")
+        print(f"\n[+] Starting ARCHAI scan for: {target}")
+        print(f"[+] Scan Level: {self.scan_level}\n")
 
         results = {}
 
-        # ===============================
-        # Phase 1 – Masscan
-        # ===============================
+        # ==========================
+        # PHASE 1 – MASSCAN
+        # ==========================
         print("[+] Phase 1 → Fast port discovery (Masscan)")
 
         masscan = MasscanEngine()
         ports = await masscan.run(target)
 
-        print(f"[DEBUG] Ports from masscan: {ports}")
         results["masscan_ports"] = ports
+        print(f"[DEBUG] Ports from masscan: {ports}")
 
-        # ===============================
-        # Phase 2 – Nmap
-        # ===============================
+        # ==========================
+        # PHASE 2 – NMAP
+        # ==========================
         print("[+] Phase 2 → Detailed service scan (Nmap)")
 
         nmap = NmapEngine(self.scan_level)
 
         if ports:
-            print("[DEBUG] Running Nmap on discovered ports")
+            print("[DEBUG] Running targeted Nmap")
             nmap_results = await nmap.execute_ports(target, ports)
         else:
             print("[DEBUG] Masscan empty → running full Nmap")
             nmap_results = await nmap.execute(target)
 
-        print("[DEBUG] Nmap completed")
         results.update(nmap_results)
         print(f"[DEBUG] Open ports: {results.get('open_ports')}")
 
-        # ===============================
-        # Phase 3 – Recon + Crawling
-        # ===============================
+        # ==========================
+        # AI DECISION ENGINE
+        # ==========================
+        decision_engine = DecisionEngine()
+        decisions = decision_engine.decide(results)
+
+        print(f"[AI] Decisions: {decisions}")
+
+        # ==========================
+        # PHASE 3 – RECON
+        # ==========================
         print("[+] Phase 3 → Recon + crawling pipeline")
 
         recon_tasks = [
             self.safe_run(WhatWebEngine().run(target)),
-            self.safe_run(FfufEngine().run(target)),
             self.safe_run(NucleiEngine().run(target)),
             self.safe_run(HarvesterEngine().run(target)),
             self.safe_run(GoWitnessEngine().run(target)),
@@ -107,34 +138,55 @@ class Orchestrator:
             self.safe_run(AssetfinderEngine().run(target))
         ]
 
+        if decisions["run_ffuf"]:
+            print("[AI] Running FFUF")
+            recon_tasks.append(self.safe_run(FfufEngine().run(target)))
+        else:
+            print("[AI] Skipping FFUF")
+
         recon_results = await asyncio.gather(*recon_tasks)
 
         results["whatweb"] = recon_results[0]
-        results["ffuf"] = recon_results[1]
-        results["nuclei"] = recon_results[2]
-        results["harvester"] = recon_results[3]
-        results["gowitness"] = recon_results[4]
-        results["katana_urls"] = recon_results[5]
-        results["assetfinder_subdomains"] = recon_results[6]
+        results["nuclei"] = recon_results[1]
+        results["harvester"] = recon_results[2]
+        results["gowitness"] = recon_results[3]
+        results["katana_urls"] = recon_results[4]
+        results["assetfinder_subdomains"] = recon_results[5]
 
-        # ===============================
-        # Phase 4 – Vulnerability scan
-        # ===============================
+        if decisions["run_ffuf"]:
+            results["ffuf"] = recon_results[6]
+        else:
+            results["ffuf"] = []
+
+        # ==========================
+        # PHASE 4 – VULNERABILITY
+        # ==========================
         print("[+] Phase 4 → Vulnerability scanners")
 
-        vuln_tasks = [
-            self.safe_run(NiktoEngine().run(target)),
-            self.safe_run(DalfoxEngine().run(target))
-        ]
+        vuln_tasks = []
 
-        vuln_results = await asyncio.gather(*vuln_tasks)
+        if decisions["run_nikto"]:
+            print("[AI] Running Nikto")
+            vuln_tasks.append(self.safe_run(NiktoEngine().run(target)))
 
-        results["nikto"] = vuln_results[0]
-        results["dalfox"] = vuln_results[1]
+        if decisions["run_dalfox"]:
+            print("[AI] Running Dalfox")
+            vuln_tasks.append(self.safe_run(DalfoxEngine().run(target)))
 
-        # ===============================
-        # Intelligence
-        # ===============================
+        if decisions["run_sqlmap"]:
+            print("[AI] Running SQLMap")
+            vuln_tasks.append(self.safe_run(SqlmapEngine().run(target)))
+
+        if vuln_tasks:
+            vuln_results = await asyncio.gather(*vuln_tasks)
+            results["vuln_results"] = vuln_results
+        else:
+            print("[AI] Skipping vulnerability scans")
+            results["vuln_results"] = []
+
+        # ==========================
+        # INTELLIGENCE
+        # ==========================
         asn = ASNLookup()
         infra = asn.lookup(target)
 
@@ -152,16 +204,17 @@ class Orchestrator:
         results["nvd_cves"] = nvd_cves
 
         anomaly_engine = AnomalyEngine()
-        anomalies = anomaly_engine.detect(results)
+        results["anomalies"] = anomaly_engine.detect(results)
 
-        results["anomalies"] = anomalies
-
+        # ==========================
+        # RISK
+        # ==========================
         risk_engine = RiskScoring()
         final_risk = risk_engine.calculate(
             results.get("risk_score", 0),
             "pipeline",
             nvd_cves,
-            len(anomalies)
+            len(results["anomalies"])
         )
 
         results["final_risk_score"] = min(round(final_risk, 2), 10)
@@ -172,54 +225,57 @@ class Orchestrator:
         confidence_engine = ConfidenceEngine()
         results["confidence_score"] = confidence_engine.calculate(results)
 
+        # ==========================
+        # AI PAYLOAD + EXPLOIT + ADAPT
+        # ==========================
+        payload_engine = PayloadEngine()
+        results["ai_payloads"] = payload_engine.generate(results)
+
+        exploit_engine = ExploitEngine()
+        results["ai_exploits"] = exploit_engine.suggest(results)
+
+        adaptive_engine = AdaptiveEngine()
+        results["adaptive_actions"] = adaptive_engine.adapt(results)
+
+        # ==========================
+        # ATTACK LOGIC
+        # ==========================
         reasoner = VulnerabilityReasoner()
         results["vulnerability_analysis"] = reasoner.analyze(results)
 
-        # ===============================
-        # Attack Analysis
-        # ===============================
         chain_builder = AttackChainBuilder()
-        attack_paths = chain_builder.generate(results)
-        results["attack_paths"] = attack_paths
+        results["attack_paths"] = chain_builder.generate(results)
 
-        simulator = PostExploitSimulator()
-        results["post_exploitation"] = simulator.simulate(results)
+        simulator = AttackSimulator()
+        results["attack_simulation"] = simulator.simulate(results)
+
+        post = PostExploitSimulator()
+        results["post_exploitation"] = post.simulate(results)
 
         graph = AttackGraph()
         results["attack_graph"] = graph.generate(results)
 
         visualizer = GraphVisualizer()
-        graph_file = visualizer.generate(target, attack_paths)
+        graph_file = visualizer.generate(target, results["attack_paths"])
         results["attack_graph_visualization"] = graph_file
 
-        # ===============================
-        # Exploit Suggestions
-        # ===============================
         exploit_mapper = ExploitMapper()
         results["exploit_suggestions"] = exploit_mapper.suggest(results)
 
-        # ===============================
-        # Report Generation
-        # ===============================
-        report_generator = ReportGenerator()
-        results["pentest_report"] = report_generator.generate(target, results)
-
-        # ===============================
-        # 🤖 AI REPORT (ADDED)
-        # ===============================
+        # ==========================
+        # AI REPORT
+        # ==========================
         ai_engine = AIReportEngine()
-        ai_report = ai_engine.generate(target, results)
+        results["ai_report"] = ai_engine.generate(target, results)
 
-        results["ai_report"] = ai_report
-
-        print("\n" + "="*60)
+        print("\n============================================================")
         print("🤖 AI GENERATED SECURITY REPORT")
-        print("="*60)
-        print(ai_report)
+        print("============================================================\n")
+        print(results["ai_report"])
 
-        # ===============================
-        # SAVE JSON (AFTER AI)
-        # ===============================
+        # ==========================
+        # EXPORT
+        # ==========================
         filename = f"archai_report_{target.replace('.', '_')}.json"
 
         report_data = {

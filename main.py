@@ -24,10 +24,10 @@ def show_banner():
 
 def show_menu():
     print("Select Scan Mode\n")
-    print("[1] Light Scan (Fast Recon)")
-    print("[2] Balanced Scan (Professional)")
-    print("[3] Aggressive Scan (Full Research)")
-    print("[4] Intelligent Adaptive Scan (Security-Focused)")
+    print("[1] Light Scan ")
+    print("[2] Balanced Scan ")
+    print("[3] Aggressive Scan")
+    print("[4] Intelligent Adaptive Scan")
     print("[5] Exit\n")
 
 
