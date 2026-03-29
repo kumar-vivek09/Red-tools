@@ -12,7 +12,7 @@ from module.crawling.assetfinder_engine import AssetfinderEngine
 
 # Tools
 from module.tools.whatweb_engine import WhatWebEngine
-from module.tools.ffuf_engine import FfufEngine
+from module.tools.hybrid_fuzzer import HybridFuzzer
 from module.tools.nuclei_engine import NucleiEngine
 from module.tools.harvester_engine import HarvesterEngine
 from module.tools.gowitness_engine import GoWitnessEngine
@@ -124,39 +124,65 @@ class Orchestrator:
 
         print(f"[AI] Decisions: {decisions}")
 
-        # ==========================
-        # PHASE 3 – RECON
-        # ==========================
+        
+        # ===============================
+        # PHASE 3 – RECON + CRAWLING
+        # ===============================
+
         print("[+] Phase 3 → Recon + crawling pipeline")
 
-        recon_tasks = [
-            self.safe_run(WhatWebEngine().run(target)),
-            self.safe_run(NucleiEngine().run(target)),
-            self.safe_run(HarvesterEngine().run(target)),
-            self.safe_run(GoWitnessEngine().run(target)),
-            self.safe_run(KatanaEngine().run(target)),
-            self.safe_run(AssetfinderEngine().run(target))
-        ]
+        recon_tasks = []
 
-        if decisions["run_ffuf"]:
-            print("[AI] Running FFUF")
-            recon_tasks.append(self.safe_run(FfufEngine().run(target)))
-        else:
-            print("[AI] Skipping FFUF")
+        # -------------------------------
+        # BASE RECON TASKS
+        # -------------------------------
+        recon_tasks.append(self.safe_run(WhatWebEngine().run(target)))
+        recon_tasks.append(self.safe_run(NucleiEngine().run(target)))
+        recon_tasks.append(self.safe_run(HarvesterEngine().run(target)))
+        recon_tasks.append(self.safe_run(GoWitnessEngine().run(target)))
+        recon_tasks.append(self.safe_run(KatanaEngine().run(target)))
+        recon_tasks.append(self.safe_run(AssetfinderEngine().run(target)))
 
+        # -------------------------------
+        # AI DECISION → FUZZING
+        # -------------------------------
+        run_fuzzing = decisions.get("run_fuzzing", False)
+
+        if run_fuzzing:
+            print("[AI] Running Hybrid Fuzzer (Ferox + Dirsearch)")
+            recon_tasks.append(self.safe_run(HybridFuzzer().run(target)))
+
+        # -------------------------------
+        # EXECUTE ALL TASKS
+        # -------------------------------
         recon_results = await asyncio.gather(*recon_tasks)
 
-        results["whatweb"] = recon_results[0]
-        results["nuclei"] = recon_results[1]
-        results["harvester"] = recon_results[2]
-        results["gowitness"] = recon_results[3]
-        results["katana_urls"] = recon_results[4]
-        results["assetfinder_subdomains"] = recon_results[5]
+        # -------------------------------
+        # SAFE RESULT MAPPING
+        # -------------------------------
+        index = 0
 
-        if decisions["run_ffuf"]:
-            results["ffuf"] = recon_results[6]
+        results["whatweb"] = recon_results[index];
+        index += 1
+        results["nuclei"] = recon_results[index];
+        index += 1
+        results["harvester"] = recon_results[index];
+        index += 1
+        results["gowitness"] = recon_results[index];
+        index += 1
+        results["katana_urls"] = recon_results[index];
+        index += 1
+        results["assetfinder_subdomains"] = recon_results[index];
+        index += 1
+
+        # -------------------------------
+        # OPTIONAL FUZZING RESULT
+        # -------------------------------
+        if run_fuzzing:
+            results["fuzzing"] = recon_results[index]
         else:
-            results["ffuf"] = []
+            results["fuzzing"] = []
+
 
         # ==========================
         # PHASE 4 – VULNERABILITY

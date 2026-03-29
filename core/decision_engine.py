@@ -7,7 +7,7 @@ class DecisionEngine:
         urls = results.get("katana_urls", [])
 
         decisions = {
-            "run_ffuf": False,
+            "run_fuzzing": False,
             "run_nikto": False,
             "run_dalfox": False,
             "run_sqlmap": False,
