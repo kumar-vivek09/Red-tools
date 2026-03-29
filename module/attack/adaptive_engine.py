@@ -1,32 +1,31 @@
-class PayloadEngine:
+class AdaptiveEngine:
 
-    def generate(self, results):
+    def adapt(self, results):
 
-        payloads = []
+        actions = []
 
-        tech = str(results.get("technologies", [])).lower()
-
-        # -------------------------
-        # XSS
-        # -------------------------
-        payloads.append("<script>alert(1)</script>")
-        payloads.append("\"'><img src=x onerror=alert(1)>")
+        ports = results.get("open_ports", [])
+        anomalies = results.get("anomalies", [])
 
         # -------------------------
-        # SQLi
+        # High risk detected
         # -------------------------
-        payloads.append("' OR 1=1--")
-        payloads.append("' UNION SELECT NULL,NULL--")
+        if len(ports) > 3:
+            actions.append("Increase scan depth")
 
         # -------------------------
-        # Command Injection
+        # Suspicious ports
         # -------------------------
-        payloads.append("; ls")
-        payloads.append("&& whoami")
+        if 31337 in ports:
+            actions.append("Investigate backdoor port")
 
         # -------------------------
-        # LFI
+        # anomalies
         # -------------------------
-        payloads.append("../../../../etc/passwd")
+        if anomalies:
+            actions.append("Run deeper vulnerability scan")
 
-        return payloads
+        if not actions:
+            actions.append("No adaptation needed")
+
+        return actions
