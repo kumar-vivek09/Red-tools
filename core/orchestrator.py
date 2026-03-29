@@ -129,59 +129,34 @@ class Orchestrator:
         # PHASE 3 – RECON + CRAWLING
         # ===============================
 
+        # ============================
+        # PHASE 3 → RECON
+        # ============================
+
         print("[+] Phase 3 → Recon + crawling pipeline")
 
-        recon_tasks = []
+        recon_tasks = [
+            self.safe_run(WhatWebEngine().run(target)),
+            self.safe_run(NucleiEngine().run(target)),
+            self.safe_run(HarvesterEngine().run(target)),
+            self.safe_run(GoWitnessEngine().run(target)),
+            self.safe_run(KatanaEngine().run(target)),
+            self.safe_run(AssetfinderEngine().run(target))
+        ]
 
-        # -------------------------------
-        # BASE RECON TASKS
-        # -------------------------------
-        recon_tasks.append(self.safe_run(WhatWebEngine().run(target)))
-        recon_tasks.append(self.safe_run(NucleiEngine().run(target)))
-        recon_tasks.append(self.safe_run(HarvesterEngine().run(target)))
-        recon_tasks.append(self.safe_run(GoWitnessEngine().run(target)))
-        recon_tasks.append(self.safe_run(KatanaEngine().run(target)))
-        recon_tasks.append(self.safe_run(AssetfinderEngine().run(target)))
+        # ADD FUZZING ALWAYS (NO AI SKIP)
+        print("[AI] Running Hybrid Fuzzer (Ferox + Dirsearch)")
+        recon_tasks.append(self.safe_run(HybridFuzzer().run(target)))
 
-        # -------------------------------
-        # AI DECISION → FUZZING
-        # -------------------------------
-        run_fuzzing = decisions.get("run_fuzzing", False)
-
-        if run_fuzzing:
-            print("[AI] Running Hybrid Fuzzer (Ferox + Dirsearch)")
-            recon_tasks.append(self.safe_run(HybridFuzzer().run(target)))
-
-        # -------------------------------
-        # EXECUTE ALL TASKS
-        # -------------------------------
         recon_results = await asyncio.gather(*recon_tasks)
 
-        # -------------------------------
-        # SAFE RESULT MAPPING
-        # -------------------------------
-        index = 0
-
-        results["whatweb"] = recon_results[index];
-        index += 1
-        results["nuclei"] = recon_results[index];
-        index += 1
-        results["harvester"] = recon_results[index];
-        index += 1
-        results["gowitness"] = recon_results[index];
-        index += 1
-        results["katana_urls"] = recon_results[index];
-        index += 1
-        results["assetfinder_subdomains"] = recon_results[index];
-        index += 1
-
-        # -------------------------------
-        # OPTIONAL FUZZING RESULT
-        # -------------------------------
-        if run_fuzzing:
-            results["fuzzing"] = recon_results[index]
-        else:
-            results["fuzzing"] = []
+        results["whatweb"] = recon_results[0]
+        results["nuclei"] = recon_results[1]
+        results["harvester"] = recon_results[2]
+        results["gowitness"] = recon_results[3]
+        results["katana_urls"] = recon_results[4]
+        results["assetfinder_subdomains"] = recon_results[5]
+        results["fuzzing"] = recon_results[6]
 
 
         # ==========================

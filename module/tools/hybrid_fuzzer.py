@@ -1,95 +1,53 @@
-import asyncio
-import json
+import subprocess
 import os
 
 class HybridFuzzer:
 
-    async def run(self, target):
-
-        print("[AI] Starting Hybrid Fuzzing (Ferox + Dirsearch)")
-
-        ferox_output = "ferox.json"
-        dirsearch_output = "dirsearch.json"
-
+    def run(self, target):
         results = []
 
-        # =========================
-        # 1. FERORBUSTER (FAST)
-        # =========================
-        print("[DEBUG] Running Feroxbuster...")
+        wordlist = "/usr/share/wordlists/dirb/common.txt"
 
-        ferox_cmd = [
-            "feroxbuster",
-            "-u", f"http://{target}",
-            "-w", "/usr/share/wordlists/dirb/common.txt",
-            "--json",
-            "-o", ferox_output,
-            "-t", "50"
-        ]
+        ferox_output = "ferox.txt"
+        dirsearch_output = "dirsearch.txt"
+
+        print("[DEBUG] Starting Feroxbuster...")
 
         try:
-            proc = await asyncio.create_subprocess_exec(
-                *ferox_cmd,
-                stdout=asyncio.subprocess.DEVNULL,
-                stderr=asyncio.subprocess.DEVNULL
+            subprocess.run(
+                f"feroxbuster -u http://{target} -w {wordlist} -o {ferox_output} --silent",
+                shell=True,
+                timeout=120
             )
-            await proc.wait()
         except Exception as e:
-            print("[FEROX ERROR]", e)
+            print("[ERROR] Ferox:", e)
 
-        # =========================
-        # PARSE FEROX
-        # =========================
+        print("[DEBUG] Starting Dirsearch...")
+
+        try:
+            subprocess.run(
+                f"python3 dirsearch/dirsearch.py -u http://{target} -w {wordlist} -o {dirsearch_output} --quiet",
+                shell=True,
+                timeout=120
+            )
+        except Exception as e:
+            print("[ERROR] Dirsearch:", e)
+
+        # ===== PARSE OUTPUT =====
         if os.path.exists(ferox_output):
-            try:
-                with open(ferox_output) as f:
-                    for line in f:
-                        data = json.loads(line)
-                        results.append(data.get("url"))
-            except:
-                pass
+            with open(ferox_output, "r") as f:
+                for line in f:
+                    if "200" in line or "301" in line or "302" in line:
+                        results.append(line.strip())
 
-        # =========================
-        # 2. DIRSEARCH (DEEP)
-        # =========================
-        print("[DEBUG] Running Dirsearch...")
-
-        dir_cmd = [
-            "python3",
-            "dirsearch/dirsearch.py",
-            "-u", f"http://{target}",
-            "-w", "/usr/share/wordlists/dirb/common.txt",
-            "--json-report", dirsearch_output,
-            "-t", "30"
-        ]
-
-        try:
-            proc = await asyncio.create_subprocess_exec(
-                *dir_cmd,
-                stdout=asyncio.subprocess.DEVNULL,
-                stderr=asyncio.subprocess.DEVNULL
-            )
-            await proc.wait()
-        except Exception as e:
-            print("[DIRSEARCH ERROR]", e)
-
-        # =========================
-        # PARSE DIRSEARCH
-        # =========================
         if os.path.exists(dirsearch_output):
-            try:
-                with open(dirsearch_output) as f:
-                    data = json.load(f)
-                    for item in data.get("results", []):
-                        results.append(item.get("url"))
-            except:
-                pass
+            with open(dirsearch_output, "r") as f:
+                for line in f:
+                    if "200" in line or "403" in line:
+                        results.append(line.strip())
 
-        # =========================
-        # CLEAN RESULTS
-        # =========================
-        results = list(set(filter(None, results)))
+        if not results:
+            print("[INFO] No fuzzing results found")
+            return []
 
-        print(f"[AI] Total endpoints discovered: {len(results)}")
-
-        return results
+        return list(set(results))

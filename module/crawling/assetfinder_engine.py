@@ -2,16 +2,21 @@ import subprocess
 
 class AssetfinderEngine:
 
-    async def run(self, target):
+    def run(self, target):
+        print("[DEBUG] Running Assetfinder...")
 
-        cmd = ["assetfinder", "--subs-only", target]
+        try:
+            result = subprocess.check_output(
+                f"assetfinder --subs-only {target}",
+                shell=True
+            ).decode().splitlines()
 
-        process = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True
-        )
+            if not result:
+                print("[INFO] No subdomains found, using fallback")
+                return [target]
 
-        output = process.stdout.strip().splitlines()
+            return result
 
-        return output
+        except Exception as e:
+            print("[ERROR] Assetfinder:", e)
+            return [target]
