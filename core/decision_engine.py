@@ -19,7 +19,7 @@ class DecisionEngine:
         # WEB DETECTION
         # -------------------------
         if 80 in ports or 443 in ports:
-            decisions["run_ffuf"] = True
+            decisions["run_fuzzing"] = True
             decisions["run_nikto"] = True
 
         # -------------------------

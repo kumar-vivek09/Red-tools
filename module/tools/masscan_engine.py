@@ -11,7 +11,7 @@ class MasscanEngine:
             "masscan",
             target,
             "-p80,443,22",
-            "--rate", "7000"
+            "--rate", "10000"
         ]
 
         try:
