@@ -233,7 +233,7 @@ class Orchestrator:
         results["ai_payloads"] = payload_engine.generate(results)
 
         exploit_engine = ExploitEngine()
-        results["ai_exploits"] = exploit_engine.suggest(results)
+        results["ai_exploits"] = exploit_engine.suggest(results,target)
 
         adaptive_engine = AdaptiveEngine()
         results["adaptive_actions"] = adaptive_engine.adapt(results)
