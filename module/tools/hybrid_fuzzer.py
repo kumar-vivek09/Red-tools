@@ -7,47 +7,30 @@ class HybridFuzzer:
         results = []
 
         wordlist = "/usr/share/wordlists/dirb/common.txt"
+        output_file = "ferox.txt"
 
-        ferox_output = "ferox.txt"
-        dirsearch_output = "dirsearch.txt"
+        url = f"http://{target}"
 
-        print("[DEBUG] Starting Feroxbuster...")
+        print("[DEBUG] Running Feroxbuster...")
 
         try:
             subprocess.run(
-                f"feroxbuster -u http://{target} -w {wordlist} -o {ferox_output} --silent",
-                shell=True,
-                timeout=120
+                f"feroxbuster -u {url} -w {wordlist} -o {output_file} -t 50 -d 2",
+                shell=True
             )
         except Exception as e:
             print("[ERROR] Ferox:", e)
+            return []
 
-        print("[DEBUG] Starting Dirsearch...")
-
-        try:
-            subprocess.run(
-                f"python3 dirsearch/dirsearch.py -u http://{target} -w {wordlist} -o {dirsearch_output} --quiet",
-                shell=True,
-                timeout=120
-            )
-        except Exception as e:
-            print("[ERROR] Dirsearch:", e)
-
-        # ===== PARSE OUTPUT =====
-        if os.path.exists(ferox_output):
-            with open(ferox_output, "r") as f:
+        # Parse results
+        if os.path.exists(output_file):
+            with open(output_file, "r") as f:
                 for line in f:
                     if "200" in line or "301" in line or "302" in line:
                         results.append(line.strip())
 
-        if os.path.exists(dirsearch_output):
-            with open(dirsearch_output, "r") as f:
-                for line in f:
-                    if "200" in line or "403" in line:
-                        results.append(line.strip())
-
         if not results:
-            print("[INFO] No fuzzing results found")
+            print("[INFO] No endpoints found")
             return []
 
         return list(set(results))
