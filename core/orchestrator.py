@@ -43,6 +43,7 @@ from core.decision_engine import DecisionEngine
 from module.attack.exploit_engine import ExploitEngine
 from module.attack.payload_engine import PayloadEngine
 from module.attack.adaptive_engine import AdaptiveEngine
+from core.ollama_engine import generate_ai_report
 
 # Graph + Report
 from core.attack_graph import AttackGraph
@@ -263,27 +264,38 @@ class Orchestrator:
         exploit_mapper = ExploitMapper()
         results["exploit_suggestions"] = exploit_mapper.suggest(results)
 
-        # ==========================
-        # AI REPORT
-        # ==========================
-        ai_engine = AIReportEngine()
-        results["ai_report"] = ai_engine.generate(target, results)
+        # ============================
+        # AI REPORT (ADD THIS BLOCK)
+        # ============================
 
-        print("\n============================================================")
-        print("🤖 AI GENERATED SECURITY REPORT")
-        print("============================================================\n")
-        print(results["ai_report"])
+        from core.ollama_engine import generate_ai_report
+
+        ai_input = {
+            "target": target,
+            "results": results
+        }
+
+        print("\nGenerating AI Report...\n")
+
+        ai_report = generate_ai_report(ai_input)
+
+        print("\nAI REPORT:\n")
+        print(ai_report)
 
         # ==========================
         # EXPORT
         # ==========================
         filename = f"archai_report_{target.replace('.', '_')}.json"
 
+
         report_data = {
             "target": target,
             "timestamp": datetime.now().isoformat(),
+            "ai_report":ai_report,
             "results": self.sanitize(results)
+
         }
+
 
         with open(filename, "w") as f:
             json.dump(report_data, f, indent=4)
