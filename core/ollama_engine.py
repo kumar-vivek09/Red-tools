@@ -15,7 +15,8 @@ Give:
 1. Attack surface summary
 2. Possible vulnerabilities
 3. Risk level (Low/Medium/High)
-4. Recommended actions
+4. Attack graph
+5. Recommended actions
 """
 
     try:
