@@ -233,7 +233,7 @@ class Orchestrator:
             results.get("risk_score", 0),
             "pipeline",
             results.get("nvd_cves",[]),
-            len(results["anomalies"])
+            len(results.get("anomalies",[]))
         )
 
         results["final_risk_score"] = min(round(final_risk, 2), 10)
