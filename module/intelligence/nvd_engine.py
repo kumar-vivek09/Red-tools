@@ -1,44 +1,35 @@
 import requests
 
-
 class NVDEngine:
 
-    def search(self, keyword):
+    def __init__(self):
+        self.base_url = "https://services.nvd.nist.gov/rest/json/cves/2.0"
+
+    async def run(self, technologies):
+        cves = []
 
         try:
-            url = f"https://services.nvd.nist.gov/rest/json/cves/2.0?keywordSearch={keyword}&resultsPerPage=3"
-            r = requests.get(url, timeout=10)
+            for tech in technologies:
+                keyword = tech.split()[0]  # Apache, PHP
 
-            if r.status_code != 200:
-                return []
+                params = {
+                    "keywordSearch": keyword,
+                    "resultsPerPage": 3
+                }
 
-            data = r.json()
-            cves = []
+                response = requests.get(self.base_url, params=params, timeout=10)
 
-            for item in data.get("vulnerabilities", []):
+                if response.status_code == 200:
+                    data = response.json()
 
-                cve_data = item.get("cve", {})
-                cve_id = cve_data.get("id")
+                    for item in data.get("vulnerabilities", []):
+                        cve_id = item["cve"]["id"]
 
-                metrics = cve_data.get("metrics", {})
-                cvss_score = 0
+                        cves.append({
+                            "cve_id": cve_id
+                        })
 
-                # Try CVSS v3.1
-                if "cvssMetricV31" in metrics:
-                    cvss_score = metrics["cvssMetricV31"][0]["cvssData"]["baseScore"]
+        except Exception as e:
+            print("NVD Error:", e)
 
-                elif "cvssMetricV30" in metrics:
-                    cvss_score = metrics["cvssMetricV30"][0]["cvssData"]["baseScore"]
-
-                elif "cvssMetricV2" in metrics:
-                    cvss_score = metrics["cvssMetricV2"][0]["cvssData"]["baseScore"]
-
-                cves.append({
-                    "cve_id": cve_id,
-                    "cvss": cvss_score
-                })
-
-            return cves
-
-        except:
-            return []
+        return {"nvd_cves": cves}

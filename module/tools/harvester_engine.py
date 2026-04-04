@@ -7,7 +7,7 @@ class HarvesterEngine:
         cmd = [
             "theHarvester",
             "-d", target,
-            "-b", "crtsh,rapiddns,otx,virustotal,shodan,censys,fallhunt,zoomeye,dnsdumpster,criminalip"
+            "-b", "crtsh,rapiddns,otx,virustotal,shodan,censys,zoomeye,dnsdumpster,criminalip,fullhunt"
         ]
 
         try:

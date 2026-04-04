@@ -186,27 +186,44 @@ class Orchestrator:
             print("[AI] Skipping vulnerability scans")
             results["vuln_results"] = []
 
-        # ==========================
-        # INTELLIGENCE
-        # ==========================
-        asn = ASNLookup()
-        infra = asn.lookup(target)
+            # ==========================
+            # INTELLIGENCE
+            # ==========================
 
-        results["infrastructure"] = infra
+            # ASN + Infra
+            asn = ASNLookup()
+            infra = asn.lookup(target)
+            results["infrastructure"] = infra
 
-        classifier = InfrastructureClassifier()
-        results["infrastructure_type"] = classifier.classify(infra.get("asn"))
+            classifier = InfrastructureClassifier()
+            results["infrastructure_type"] = classifier.classify(infra.get("asn"))
 
-        nvd = NVDEngine()
-        nvd_cves = []
+            # --------------------------
+            # FIXED NVD (ASYNC + REAL)
+            # --------------------------
+            nvd_engine = NVDEngine()
 
-        for tech in results.get("technologies", []):
-            nvd_cves.extend(nvd.search(tech))
+            try:
+                nvd_data = await self.safe_run(
+                    nvd_engine.run(results.get("technologies", []))
+                )
+                results.update(nvd_data)
+            except Exception as e:
+                print("[ERROR] NVD failed:", e)
+                results["nvd_cves"] = []
 
-        results["nvd_cves"] = nvd_cves
+            # --------------------------
+            # ANOMALY DETECTION
+            # --------------------------
+            anomaly_engine = AnomalyEngine()
+            results["anomalies"] = anomaly_engine.detect(results)
 
-        anomaly_engine = AnomalyEngine()
-        results["anomalies"] = anomaly_engine.detect(results)
+            # --------------------------
+            # VULNERABILITY REASONING (FIXED)
+            # --------------------------
+            reasoner = VulnerabilityReasoner()
+            vuln_data = reasoner.analyze(results)
+            results.update(vuln_data)
 
         # ==========================
         # RISK
