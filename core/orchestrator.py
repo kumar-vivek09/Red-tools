@@ -232,7 +232,7 @@ class Orchestrator:
         final_risk = risk_engine.calculate(
             results.get("risk_score", 0),
             "pipeline",
-            nvd_cves,
+            results.get("nvd_cves",[]),
             len(results["anomalies"])
         )
 
