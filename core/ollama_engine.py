@@ -1,5 +1,8 @@
-import requests
 import json
+import os
+
+import requests
+
 
 def generate_ai_report(data):
 
@@ -19,14 +22,18 @@ Give:
 5. Recommended actions
 """
 
+    base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+    model = os.getenv("OLLAMA_MODEL", "llama3")
+
     try:
         response = requests.post(
-            "http://localhost:11434/api/generate",
+            f"{base_url.rstrip('/')}/api/generate",
             json={
-                "model": "llama3",
+                "model": model,
                 "prompt": prompt,
-                "stream": False
-            }
+                "stream": False,
+            },
+            timeout=30,
         )
 
         result = response.json()

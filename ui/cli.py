@@ -1,6 +1,8 @@
 # ui/cli.py
 
 import argparse
+import asyncio
+
 from core.orchestrator import Orchestrator
 from reports.json_exporter import export_json
 from reports.pdf_generator import generate_pdf
@@ -22,7 +24,7 @@ def run_cli():
     if args.command == "scan":
 
         engine = Orchestrator(args.target)
-        context = engine.run()
+        context = asyncio.run(engine.run(args.target))
 
         if args.report == "json":
             file = export_json(context)

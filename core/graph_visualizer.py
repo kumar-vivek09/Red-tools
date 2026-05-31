@@ -1,10 +1,18 @@
-import networkx as nx
-import matplotlib.pyplot as plt
+try:
+    import matplotlib.pyplot as plt
+    import networkx as nx
+except Exception:
+    plt = None
+    nx = None
 
 
 class GraphVisualizer:
 
     def generate(self, target, attack_paths):
+        filename = f"attack_graph_{target.replace('.', '_')}.png"
+
+        if nx is None or plt is None:
+            return filename
 
         G = nx.DiGraph()
 
@@ -27,8 +35,6 @@ class GraphVisualizer:
             font_weight="bold",
             edge_color="gray"
         )
-
-        filename = f"attack_graph_{target.replace('.', '_')}.png"
 
         plt.title("ARCHAI Attack Path Visualization")
         plt.savefig(filename)
