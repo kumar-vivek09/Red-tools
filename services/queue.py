@@ -214,7 +214,7 @@ class QueueManager:
         }
         self._workers[worker_id] = worker
         if self.ensure_redis_connection():
-            self._redis_sync.hset("workers", worker_id, json.dumps(worker))
+            self._redis_sync.hset("workers", mapping={worker_id: json.dumps(worker)})
         return worker
 
     def heartbeat(self, worker_id, metadata=None):
@@ -227,7 +227,7 @@ class QueueManager:
             worker["metadata"] = metadata
 
         if self.ensure_redis_connection():
-            self._redis_sync.hset("workers", worker_id, json.dumps(worker))
+            self._redis_sync.hset("workers", mapping={worker_id: json.dumps(worker)})
 
         return worker
 
@@ -255,7 +255,7 @@ class QueueManager:
         job = self._normalize_job(job_id, payload)
         self._jobs[job_id] = job
         if self.ensure_redis_connection():
-            self._redis_sync.hset("jobs", job_id, json.dumps(job))
+            self._redis_sync.hset("jobs", mapping={job_id: json.dumps(job)})
         return job
 
     def get_job(self, job_id):
