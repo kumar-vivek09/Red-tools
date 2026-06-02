@@ -2,6 +2,9 @@ git add .
 git commit -m "Updated feature / fixed bug"
 git push origin main
 
-testphp.vulnweb.com
-dbw agent
-gau
+┌──(unknown㉿kali)-[~/Desktop/Tool/Red-tools]
+└─$ export REDIS_URL=redis://192.168.1.3:6379/0           
+export WORKER_ID=kali-recon-1
+export WORKER_ROLE=recon
+
+python workers/recon_worker.py

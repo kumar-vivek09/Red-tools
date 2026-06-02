@@ -325,15 +325,35 @@ class NativeReconWorker:
         scan_level = int(job.get("scan_level", 1))
 
         try:
+            self.log(f"DEBUG: starting publish_status running job_id={job_id}")
             await self.publish_status(job_id, "running", target=target, scan_level=scan_level, stage="recon")
+            self.log(f"DEBUG: publish_status running completed job_id={job_id}")
             await self.publish_telemetry("scan_started", job_id, target=target, scan_level=scan_level)
 
-            native_results = await self.execute_native_tools(target, job_id)
-            scan_result = await self.recon_service.scan_async(target)
+            self.log(f"DEBUG: starting execute_native_tools job_id={job_id}")
+            try:
+                native_results = await self.execute_native_tools(target, job_id)
+            except Exception as exc:
+                self.log(f"DEBUG: execute_native_tools failed: {exc}")
+                raise
+            self.log(f"DEBUG: execute_native_tools completed job_id={job_id}")
+
+            self.log(f"DEBUG: starting recon_service.scan_async job_id={job_id}")
+            try:
+                scan_result = await self.recon_service.scan_async(target)
+            except Exception as exc:
+                self.log(f"DEBUG: recon_service.scan_async failed: {exc}")
+                raise
+            self.log(f"DEBUG: recon_service.scan_async completed job_id={job_id}")
+
             combined_results = dict(scan_result)
             combined_results["native_results"] = native_results
 
+            self.log(f"DEBUG: starting generate_json_report job_id={job_id}")
             report_file = self.report_service.generate_json_report(target, combined_results)
+            self.log(f"DEBUG: generate_json_report completed job_id={job_id}")
+
+            self.log(f"DEBUG: starting persist_job_status job_id={job_id}")
             self.queue_manager.persist_job_status(
                 job_id,
                 status="completed",
@@ -344,6 +364,7 @@ class NativeReconWorker:
                 native_results=native_results,
                 result=combined_results,
             )
+            self.log(f"DEBUG: persist_job_status completed job_id={job_id}")
             await self.publish_status(
                 job_id,
                 "completed",
