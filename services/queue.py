@@ -96,7 +96,18 @@ class QueueManager:
             return None
 
         if isinstance(payload, str):
-            payload = json.loads(payload)
+            try:
+                payload = json.loads(payload)
+            except json.JSONDecodeError:
+                return None
+
+        if isinstance(payload, dict) and isinstance(payload.get("body"), str):
+            try:
+                body = json.loads(payload["body"])
+                if isinstance(body, dict):
+                    payload = body
+            except json.JSONDecodeError:
+                pass
 
         job = dict(payload)
         job.setdefault("job_id", job_id)

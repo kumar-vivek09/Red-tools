@@ -64,16 +64,13 @@ async def recon_health():
 
 @app.post("/api/recon/scan")
 async def start_recon_scan(scan_request: ScanRequest):
-    job = queue_manager.enqueue_job(
-        "recon_queue",
-        {
-            "job_id": uuid.uuid4().hex,
-            "task_type": "recon",
-            "target": scan_request.target,
-            "scan_level": scan_request.scan_level,
-            "status": "queued",
-        },
-    )
+    job = {
+        "job_id": uuid.uuid4().hex,
+        "target": scan_request.target,
+        "scan_level": scan_request.scan_level,
+        "status": "queued",
+    }
+    queue_manager.enqueue("recon_queue", job)
     app.state.jobs[job["job_id"]] = job
     await queue_manager.publish_async("telemetry", {"type": "job_status", **job})
     return {"job_id": job["job_id"], "status": "queued", "queue": "recon_queue"}
