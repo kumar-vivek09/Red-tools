@@ -255,6 +255,14 @@ class QueueManager:
         job = self._normalize_job(job_id, payload)
         self._jobs[job_id] = job
         if self.ensure_redis_connection():
+            print(f"DEBUG set_job job_id={repr(job_id)}")
+            print(f"DEBUG set_job type(job_id)={type(job_id)}")
+            try:
+                payload = json.dumps(job, default=str)
+                print(payload)
+            except Exception as exc:
+                print(f"DEBUG json serialization failed: {exc}")
+                raise
             self._redis_sync.hset("jobs", mapping={job_id: json.dumps(job)})
         return job
 
