@@ -142,7 +142,9 @@ class NativeReconWorker:
 
         nmap_path = shutil.which("nmap")
         if nmap_path:
+            self.log("DEBUG: starting nmap")
             nmap_result = await self.run_shell([nmap_path, "-Pn", "-T4", "--top-ports", "100", target, "-oX", "-"], timeout=600)
+            self.log("DEBUG: completed nmap")
             native_results["nmap"] = nmap_result
             if nmap_result.get("stdout"):
                 try:
@@ -221,7 +223,9 @@ class NativeReconWorker:
 
         masscan_path = shutil.which("masscan")
         if masscan_path:
+            self.log("DEBUG: starting masscan")
             masscan_result = await self.run_shell([masscan_path, "-p80,443,22", "--rate", "1000", target], timeout=600)
+            self.log("DEBUG: completed masscan")
             native_results["masscan"] = masscan_result
             for line in masscan_result.get("stdout", "").splitlines():
                 if "Discovered open port" in line:
@@ -249,7 +253,9 @@ class NativeReconWorker:
 
         assetfinder_path = shutil.which("assetfinder")
         if assetfinder_path:
+            self.log("DEBUG: starting assetfinder")
             assetfinder_result = await self.run_shell([assetfinder_path, "--subs-only", target], timeout=600)
+            self.log("DEBUG: completed assetfinder")
             native_results["assetfinder"] = assetfinder_result
             for line in assetfinder_result.get("stdout", "").splitlines():
                 subdomain = line.strip()
@@ -266,7 +272,9 @@ class NativeReconWorker:
 
         katana_path = shutil.which("katana")
         if katana_path:
+            self.log("DEBUG: starting katana")
             katana_result = await self.run_shell([katana_path, "-u", ensure_url(target), "-silent"], timeout=600)
+            self.log("DEBUG: completed katana")
             native_results["katana"] = katana_result
             for line in katana_result.get("stdout", "").splitlines():
                 url = line.strip()
@@ -292,7 +300,9 @@ class NativeReconWorker:
 
         whatweb_path = shutil.which("whatweb")
         if whatweb_path:
+            self.log("DEBUG: starting whatweb")
             whatweb_result = await self.run_shell([whatweb_path, ensure_url(target)], timeout=600)
+            self.log("DEBUG: completed whatweb")
             native_results["whatweb"] = whatweb_result
             for line in whatweb_result.get("stdout", "").splitlines():
                 if line.strip():
@@ -302,7 +312,9 @@ class NativeReconWorker:
 
         dalfox_path = shutil.which("dalfox")
         if dalfox_path:
+            self.log("DEBUG: starting dalfox")
             dalfox_result = await self.run_shell([dalfox_path, "url", ensure_url(target), "--silence"], timeout=600)
+            self.log("DEBUG: completed dalfox")
             native_results["dalfox"] = dalfox_result
             for line in dalfox_result.get("stdout", "").splitlines():
                 if "[VULNERABILITY]" in line or "vulnerab" in line.lower():
@@ -312,7 +324,9 @@ class NativeReconWorker:
 
         gowitness_path = shutil.which("gowitness")
         if gowitness_path:
+            self.log("DEBUG: starting gowitness")
             gowitness_result = await self.run_shell([gowitness_path, "scan", "--url", ensure_url(target)], timeout=600)
+            self.log("DEBUG: completed gowitness")
             native_results["gowitness"] = gowitness_result
         else:
             native_results["gowitness"] = {"available": False, "stderr": "gowitness not found"}
